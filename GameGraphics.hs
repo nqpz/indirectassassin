@@ -6,7 +6,6 @@ import Data.Maybe
 import Data.Word
 import Data.Ratio
 import qualified Data.Map as Map
-import qualified Control.Monad as CM
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import Graphics.UI.SDL.Keysym
@@ -22,15 +21,30 @@ createColorSurf w h color = do
   SDL.fillRect surf Nothing $ SDL.Pixel color
   return surf
 
+dirToWCN Up    = 0
+dirToWCN Left  = 1
+dirToWCN Down  = 2
+dirToWCN Right = 3
+
+walkCycle d i surf = (surf, SDL.Rect (64 * i) (64 * (dirToWCN d)) 64 64)
+
+male = SDLi.load "male_walkcycle.png"
+                            
+getSurf (Guard d _ _) i = walkCycle d i male
+getSurf (User d _)    i = walkCycle d i male
+getSurf Wall          _ = (createColorSurf 64 64 0x0000ffff, SDL.Rect 0 0 64 64)
+getSurf (Item _)      _ = (createColorSurf 64 64 0x0000ffff, SDL.Rect 0 0 64 64)
+getSurf Empty         _ = (createColorSurf 64 64 0x00000000, SDL.Rect 0 0 64 64)
+
 drawObject :: SDL.Surface -> Map.Map Position Position -> Int -> (Position, Cell) -> IO ()
-drawObject screenSurf posChanges offset (p, obj) = do
---  print (p, x, y)
-  let dr = Just $ SDL.Rect x y 0 0
-  surf <- createColorSurf 64 64 (if isUser obj then 0xff0000ff else 0x00ff00ff)
-  SDL.blitSurface surf Nothing screenSurf dr
-  print offset
+drawObject screenSurf posChanges frameIdx (p, obj) = do
+  let (surf, sr) = getSurf obj frameIdx
+  let dr = SDL.Rect x y 0 0
+  surf' <- surf
+  SDL.blitSurface surf' (Just sr) screenSurf (Just dr)
   return ()
   where
+    offset = 7 * (frameIdx + 1)
     (x, y) = maybe (p * (64, 64)) calcP $ Map.lookup p posChanges
     calcP (x', y') = (x' * 64 + (calcOffset x' $ fst p), y' * 64 + (calcOffset y' $ snd p))
     calcOffset t' t | t' < t = offset
@@ -45,7 +59,7 @@ animate msecs nFrames act = do
           if i == nFrames
             then return ()
             else do
-            act $ 7 * (i + 1)
+            act i
             t' <- SDL.getTicks
             let delay = max (fromIntegral i * frmDur - 1000.0 * (fromIntegral (t' - t))) 0
             threadDelay $ floor delay
