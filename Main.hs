@@ -12,5 +12,7 @@ main = do
   args <- getArgs
   if ["--help", "-h"] `anyelem` args
     then putStrLn "help text" >> return ()
-    else runGame $ map loadGameMap args
+    else do
+    games <- outM $ map loadGameMap args
+    runGame games
 
