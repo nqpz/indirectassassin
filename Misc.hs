@@ -20,3 +20,6 @@ splitSub d = split' . chunk (length d)
           | otherwise = let (ys, zs) = split' xss
                         in (x : ys, zs)
         split' [] = ([], [])
+
+anyelem :: Eq a => [a] -> [a] -> Bool
+anyelem xs ys = (\y -> y `elem` xs) `any` ys

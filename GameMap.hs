@@ -34,6 +34,26 @@ data Cell = Wall
           | Item {getItem :: ItemType}
           deriving (Show)
 
+isGuard :: Cell -> Bool
+isGuard (Guard _ _ _) = True
+isGuard _             = False
+
+isUser :: Cell -> Bool
+isUser (User _ _) = True
+isUser _          = False
+
+isItem :: Cell -> Bool
+isItem (Item _) = True
+isItem _        = False
+
+isWall :: Cell -> Bool
+isWall (Wall) = True
+isWall _      = False
+
+isEmpty :: Cell -> Bool
+isEmpty Empty = True
+isEmpty _     = False
+
 type GameMap = Map.Map Position Cell
 type Game = (GameMap, Position)
 

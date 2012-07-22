@@ -17,22 +17,6 @@ turn relDir gMap (dir, p) = case cellAt gMap nextPos of
   where (nextDir, nextPos) = (nextPosition dir Up p)
         (altDir, altPos)   = (nextPosition dir relDir p)
 
-isGuard :: Cell -> Bool
-isGuard (Guard _ _ _) = True
-isGuard _             = False
-
-isUser :: Cell -> Bool
-isUser (User _ _) = True
-isUser _          = False
-
-isItem :: Cell -> Bool
-isItem (Item _) = True
-isItem _        = False
-
-isWall :: Cell -> Bool
-isWall (Wall) = True
-isWall _      = False
-
 moveUser :: Game -> Direction -> Game
 moveUser (gMap, userPos) dir = if isWall cell then (gMap, userPos) 
                                else (Map.insert newPos newUser nMap, newPos)
@@ -42,8 +26,8 @@ moveUser (gMap, userPos) dir = if isWall cell then (gMap, userPos)
         nMap = Map.delete userPos gMap
         newUser = User dir (if isItem cell then getItem cell : items else items)
 
-nextStep :: Game -> Game
-nextStep (gMap, userPos) = (withGuardsMoved, userPos)
+nextStep :: Game -> Maybe Game
+nextStep (gMap, userPos) = Just (withGuardsMoved, userPos)
   where withGuardsMoved = Map.foldWithKey moveGuards gMap $ Map.filter isGuard gMap
         moveGuards p (Guard dir mvStrategy items) gMap
           = Map.insert newPos newGuard nMap

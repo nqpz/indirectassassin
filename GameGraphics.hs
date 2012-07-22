@@ -65,5 +65,6 @@ runGame games = do
         eventLoop = do
           event <- SDL.waitEventBlocking
           newGame <- checkEvent event
-          maybe (return ()) (gameLoop screenSurf background . nextStep) $ newGame
-    
+          let newGame2 = maybe Nothing nextStep newGame
+          maybe (return ()) (gameLoop screenSurf background) $ newGame2
+
