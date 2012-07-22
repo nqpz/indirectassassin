@@ -31,7 +31,7 @@ data Cell = Wall
           | Empty
           | Guard Direction MovementStrategy [ItemType]
           | User Direction [ItemType]
-          | Item ItemType
+          | Item {getItem :: ItemType}
           deriving (Show)
 
 type GameMap = Map.Map Position Cell

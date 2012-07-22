@@ -8,9 +8,11 @@ import GameMap
 
 turn :: Direction -> GameMap -> StillVector -> StillVector
 turn relDir gMap (dir, p) = case cellAt gMap nextPos of
-  Empty -> (nextDir, nextPos)
+  Empty  -> (nextDir, nextPos)
+  Item _ -> (nextDir, nextPos)
   _     -> case cellAt gMap altPos of
-    Empty -> (altDir, altPos)
+    Empty  -> (altDir, altPos)
+    Item _ -> (altDir, altPos)
     _     -> (dir, p)
   where (nextDir, nextPos) = (nextPosition dir Up p)
         (altDir, altPos)   = (nextPosition dir relDir p)
@@ -23,12 +25,22 @@ isUser :: Cell -> Bool
 isUser (User _ _) = True
 isUser _          = False
 
+isItem :: Cell -> Bool
+isItem (Item _) = True
+isItem _        = False
+
+isWall :: Cell -> Bool
+isWall (Wall) = True
+isWall _      = False
+
 moveUser :: Game -> Direction -> Game
-moveUser (gMap, userPos) dir = (Map.insert newPos newUser nMap, newPos)
+moveUser (gMap, userPos) dir = if isWall cell then (gMap, userPos) 
+                               else (Map.insert newPos newUser nMap, newPos)
   where (User _ items) = gMap Map.! userPos
-        nMap = Map.delete userPos gMap
         (_, newPos) = nextPosition dir Up userPos
-        newUser = User dir items
+        cell = cellAt gMap newPos
+        nMap = Map.delete userPos gMap
+        newUser = User dir (if isItem cell then getItem cell : items else items)
 
 nextStep :: Game -> Game
 nextStep (gMap, userPos) = (withGuardsMoved, userPos)
@@ -37,4 +49,5 @@ nextStep (gMap, userPos) = (withGuardsMoved, userPos)
           = Map.insert newPos newGuard nMap
             where nMap = Map.delete p gMap
                   (newDir, newPos) = mvStrategy nMap (dir, p)
-                  newGuard = Guard newDir mvStrategy items
+                  cell = cellAt nMap newPos
+                  newGuard = Guard newDir mvStrategy (if isItem cell then getItem cell : items else items)
