@@ -1,5 +1,304 @@
-Staelth Nijna
-=============
+Indirect Assassin
+=================
 
-Speling is not of ani koncern in ur bizness.
+> What was that? Did I just assassinate that guy? No, that can't be... I don't
+> kill. Must have been his own fault.
 
+You're a dodgy assassin (though you don't call yourself that) who never
+*directly* kills people, but who's ok with *indirectly* doing so. In fact,
+you're more than ok with it; it's your job.
+
+Under your secret identity as "The Agent", you do jobs where the task is to
+eliminate professors in dungeons. You care deeply about your contractor's wish
+for silence regarding these jobs, so you don't know why these dungeon-examining
+professors must die. And you're always surprised when they do, because you
+never killed one...
+
+
+Author
+------
+
+The author of Indirect Assassin is Niels G. W. Serup <ns@metanohi.name>.
+
+
+Version
+-------
+
+This is version 0.1.0 of Indirect Assassin.
+
+
+Online
+------
+
+Indirect Assassin has a web page at
+http://metanohi.name/projects/indirectassassin/ which always contains the
+newest version of the program. Indirect Assassin is also on Hackage; see
+http://
+
+
+Licenses
+--------
+
+Indirect Assassin is free software under the terms of the GNU General Public
+License version 3 (or any later version). All artwork used in Indirect Assassin
+is free culture, mainly under Creative Commons Attribution-Share Alike 3.0.
+
+### Documents
+
+* Creative Commons Attribution-Share Alike 3.0: cc-by-sa-3.0.txt
+* GNU General Public License, version 3: gpl-3.0.txt
+* Free Art License, version 1.3: free-art-license-1.3.txt
+* Creative Commons Zero 1.0: cc0-1.0.txt
+
+
+### Art attributions
+
+Most of the artwork used in Indirect Assassin comes from the Liberated Pixel
+Cup 2012 (this game is a participant in that contest, by the way). Art from LPC
+2012 is dual-licensed under Creative Commons Attribution-Share Alike 3.0 and
+GNU General Public License, version 3. All LPC-based art can be downloaded in
+its original form at http://lpc.opengameart.org/
+
+
+#### data/sound/background_music.ogg
+
+Edited version of the track "les memoires mortes" from the album "obscures
+reflections" by the artist MOONDARK; see
+http://www.jamendo.com/en/track/77577/les-memoires-mortes for more
+information. Licensed under the Free Art License 1.3.
+
+
+#### data/character/soldier_(normal|zombie).png
+
+From LPC 2012. Barbara Rivera's "Concept Art for LPC Entry".
+
+
+#### data/character/(professor|agent).png
+
+From LPC 2012. Skyler Robert Colladay's "Feral Fantom's Entry".
+
+
+#### data/item/toilet.png
+
+From LPC 2012. Edited version of Matthew Nash's "Public Toilet Tileset".
+
+
+#### data/sound/branch-break.flac
+
+From LPC 2012. Johnathan Roatch's "Miscellaneous SFX".
+
+
+#### data/item/tomato.png
+
+From LPC 2012. Johann Charlot's "Shoot'em up graphic kit". Also available under
+GNU LGPL v3.
+
+
+#### data/item/ice_shield.png
+
+From LPC 2012. Daniel Eddeland's "Farming tilesets, magic animations and UI
+elements".
+
+
+#### data/item/diamond.png
+
+From LPC 2012. Chris Phillips' "Team River Fox".
+
+
+#### data/item/(barrels|buckets).png
+
+From LPC 2012. Edited versions of Lanea Zimmerman's base artwork.
+
+
+#### data/item/(bat_yellow|bee_green).png
+
+From LPC 2012. Edited versions of Charles Sanchez' base artwork.
+
+
+#### data/floor.png
+
+From LPC 2012. Edited version of Skyler Robert Colladay's "Feral Fantom's
+Entry".
+
+
+#### data/wall.png
+
+From LPC 2012. Mix of of Skyler Robert Colladay's "Feral Fantom's
+Entry" and Lanea Zimmerman's base artwork.
+
+#### data/maps/*
+
+To the extent possible under law, Niels G. W. Serup has waived all copyright
+and related or neighboring rights to these maps. Creative Commons Zero 1.0.
+
+
+Installation
+------------
+
+Indirect Assassin is written in Haskell. It should work with the Glasgow
+Haskell Compiler (GHC) of version 6.12.1 and up. Indirect Assassin also uses
+Haskell's SDL library.
+
+Indirect Assassin does not require very new versions of GHC and its SDL
+library, so it's very likely that the packages from your package manager are
+enough up-to-date, even if they're a few years old. With an apt-based package
+manager, for example, you can run:
+
+    aptitude install ghc6 libghc6-sdl-dev libghc6-sdl-image-dev \
+      libghc6-sdl-mixer-dev libghc6-sdl-ttf-dev
+      
+to install all necessary packages for Indirect Assassin to run. With other
+package managers it's probably equally simple. If you cannot or will not use a
+package manager, you can download GHC and the Haskell Platform from
+http://hackage.haskell.org/platform/ --- once you have downloaded and installed
+those, you can use a newly installed program, "cabal", to download and install
+Haskell SDL bindings:
+
+    cabal install sdl sdl-image sdl-mixer sdl-ttf
+
+Once this is done, run (from the root directory of the extracted tarball):
+
+    runhaskell Setup.hs configure
+    runhaskell Setup.hs build
+    runhaskell Setup.hs install
+
+and the game should be installed.
+
+
+### With Cabal
+
+Note that, if you have installed the Haskell Platform, you can just run
+
+    cabal install indirectassassin
+    
+to both download and install the newest version of this game and its SDL
+dependencies. Note that you'll probably still want to keep a copy of this
+README as it's essentially the documentation of the game.
+
+
+How to play
+-----------
+
+### Step 0: Start it
+
+To start the game, just run:
+
+    indirectassassin
+
+from a terminal. However, this will only let you play on the built-in dungeon
+maps. To specify custom maps, run:
+
+    indirectassassin map_0 map_1 ... map_n
+
+Custom maps will be prepended to the list of built-in maps.
+
+Indirect Assassin does not have a menu (programming a menu is boring, and using
+the command-line is easier (this is, by the way, completely objective)).
+
+At this time, the resolution is hardcoded at 768x576, i.e. 12x9 64x64 tiles,
+and fullscreen is not possible. This is mainly due to slacking on the author's
+part.
+
+
+### Step 1: Play
+
+The gameplay of Indirect Assassin is simple, but it does require learning
+several rules and items, as well as the memorisation of a few keys on your
+keyboard. On the plus side (again, completely objective), your mouse (if you
+have any) is useless in this game.
+
+Genre-wise, Indirect Assassin is probably closest to stealth games; it's a
+turn-based stealth game.
+
+Indirect Assassin consists of maps; there are a few built-in ones, and it's
+easy to create your own.
+
+
+#### Gameplay
+
+You, The Agent, can see in the dark through the use of your high-tech
+sunglasses, but the professors cannot see that you can see in the dark. Your
+vision is limited to a few tiles forward, and not backward or to any
+sides. Professors use flashlights to see in the dark. They too can only see a
+few tiles ahead and not backwards or to the sides. You can see the light from
+their flashlights if it is sufficiently close to you, even if the light shines
+at you from your back or from a side. If you get covered in light so much that
+a professor can see you, he kills you instantly, and you lose. You can see the
+light one tile before the professor with the light source can see you, which
+might give you time to escape it.
+
+The tiles which are not visible due to either your night vision or the dim,
+outer lights of flashlights, are completely black, unless you have entered
+cheat mode (aka debug mode) where all tiles are visible to you (but still not
+to the professors).
+
+When you start the game, you play on the first map from the list of maps. At
+any time you can shift to another map (since the game is turn-based, you can
+actually have games on many maps at the same time).
+
+When you win or lose on a map, you receive a message on the screen stating your
+win/lose state. Accepting that state lets you play on that map again.
+
+
+#### How to win
+
+If you manage to kill (indirectly, of course) all the professors on a map, you
+win. To indirectly kill a professor, you must pick up dangerous items and place
+them so that the professors stumble upon them, and remove good items, so that
+professors don't stumble over them. There are several types of items, and they
+affect the professors in different ways.
+
+An important part of playing on any map is thus to figure out how many
+professors exist and which items are available. Unless the cheat mode is used,
+this process requires luck.
+
+
+#### Items
+
+
+
+#### Maps
+
+Indirect Assassin comes with HOWMANY built-in maps. All maps are files in a
+simple textual format. The included maps can be found in
+<datainstallationdir>/maps/ (or, if you downloaded the tarball, in data/maps/).
+
+##### How to create your own maps
+
+It might be useful to look at the built-in maps for inspiration for creating
+your own maps.
+
+A small map might look like this:
+
+    #####
+    #!b #
+    #  x#
+    #####
+
+[EXPLAIN]
+
+
+#### Keys to remember
+
+* Move left if possible: Left arrow key: 
+* Move right if possible: Right arrow key
+* Move up if possible: Up arrow key
+* Move down if possible: Down arrow key
+* Toggle cheat mode: Control+X
+* Accept message: Enter
+* Go to next map: Control+Right arrow key
+* Go to previous map: Control+Left arrow key
+
+
+Liberated Pixel Cup
+-------------------
+
+Indirect Assassin is an entry in the Liberated Pixel Cup 2012, a free software
+and free culture contest. See http://lpc.opengameart.org/ for more information.
+
+
+This document
+-------------
+
+To the extent possible under law, Niels G. W. Serup has waived all copyright
+and related or neighboring rights to this document. Creative Commons Zero 1.0.

@@ -28,8 +28,22 @@ dirToWCN Right = 3
 
 walkCycle d i surf = (surf, SDL.Rect (64 * i) (64 * (dirToWCN d)) 64 64)
 
-male = SDLi.load "male_walkcycle.png"
+itemAnimations = []
+mkAnimation "Matthew_Nash__Public Toilet Tileset/toilet.png" 64 1
+mkAnimation "base_assets/3barrels.png" 64 1
+mkAnimation "base_assets/4buckets.png" 64 1
+mkAnimation "base_assets/bat_yellow.png" 32 12
+mkAnimation "base_assets/bee_green.png" 32 12
+
+mkAnimation "base_assets/wall.png" 32 12
+
+
+soldierNormal = SDLi.load "Barbara_Rivera__Concept Art for LPC Entry/malesoldiernormal.png"
+soldierZombie = SDLi.load "Barbara_Rivera__Concept Art for LPC Entry/malesoldierzombie.png"
                             
+fbi = SDLi.load "Skyler_Robert_Colladay__FeralFantom's Entry/FBI_walk_cycle.png"
+professor = SDLi.load "Skyler_Robert_Colladay__FeralFantom's Entry/professor_walk_cycle_no_hat.png"
+
 getSurf (Guard d _ _) i = walkCycle d i male
 getSurf (User d _)    i = walkCycle d i male
 getSurf Wall          _ = (createColorSurf 64 64 0x0000ffff, SDL.Rect 0 0 64 64)
@@ -38,14 +52,14 @@ getSurf Empty         _ = (createColorSurf 64 64 0x00000000, SDL.Rect 0 0 64 64)
 
 drawObject :: SDL.Surface -> Map.Map Position Position -> Int -> (Position, Cell) -> IO ()
 drawObject screenSurf posChanges frameIdx (p, obj) = do
-  let (surf, sr) = getSurf obj frameIdx
+  let (surf, sr) = getSurf obj i
   let dr = SDL.Rect x y 0 0
   surf' <- surf
   SDL.blitSurface surf' (Just sr) screenSurf (Just dr)
   return ()
   where
     offset = 7 * (frameIdx + 1)
-    (x, y) = maybe (p * (64, 64)) calcP $ Map.lookup p posChanges
+    ((x, y), i) = maybe (p * (64, 64), 0) (\t -> (calcP t, frameIdx)) $ Map.lookup p posChanges
     calcP (x', y') = (x' * 64 + (calcOffset x' $ fst p), y' * 64 + (calcOffset y' $ snd p))
     calcOffset t' t | t' < t = offset
                     | t' > t = -offset
@@ -78,20 +92,23 @@ runGame games = do
   screenSurf <- SDL.getVideoSurface
   background <- createColorSurf width height 0x000000ff
 
+  drawObjects screenSurf background game Map.empty 0
   gameLoop screenSurf background (game, Map.empty)
 --  mapM_ SDL.freeSurface objects
   SDL.quit
   
   where 
+    drawObjects screenSurf background (gameMap, _) posChanges n = do
+      SDL.blitSurface background Nothing screenSurf Nothing
+      mapM_ (drawObject screenSurf posChanges n) $ Map.toList gameMap
+      SDL.flip screenSurf
+    
     gameLoop screenSurf background (game@(gameMap, _), posChanges) = do
-      animate 360 9 $ drawObjects posChanges
-      drawObjects Map.empty 0
+      animate 360 9 $ drawObjects' posChanges
+      drawObjects' Map.empty 0
       eventLoop
       where 
-        drawObjects posChanges n = do
-          SDL.blitSurface background Nothing screenSurf Nothing
-          mapM_ (drawObject screenSurf posChanges n) $ Map.toList gameMap
-          SDL.flip screenSurf
+        drawObjects' = drawObjects screenSurf background game
 
         checkEvent (SDL.KeyDown (Keysym k _ _))
           | k == SDLK_UP    = r Up
