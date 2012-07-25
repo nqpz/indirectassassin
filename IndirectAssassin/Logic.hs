@@ -1,10 +1,10 @@
-module Logic where
+module IndirectAssassin.Logic where
 
 -- Global
 import qualified Data.Map as Map
 -- Local
-import Misc
-import GameMap
+import IndirectAssassin.Misc
+import IndirectAssassin.Map
 
 turn :: Direction -> GameMap -> StillVector -> StillVector
 turn relDir gMap (dir, p) = case cellAt gMap nextPos of

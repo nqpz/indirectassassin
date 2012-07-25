@@ -45,10 +45,14 @@ is free culture, mainly under Creative Commons Attribution-Share Alike 3.0.
 
 ### Documents
 
-* Creative Commons Attribution-Share Alike 3.0: cc-by-sa-3.0.txt
-* GNU General Public License, version 3: gpl-3.0.txt
-* Free Art License, version 1.3: free-art-license-1.3.txt
-* Creative Commons Zero 1.0: cc0-1.0.txt
+* Creative Commons Attribution-Share Alike 3.0: cc-by-sa-3.0.txt or
+  http://creativecommons.org/licenses/by-sa/3.0/
+* GNU General Public License, version 3: gpl-3.0.txt or
+  http://www.gnu.org/licenses/gpl-3.0.html
+* Free Art License, version 1.3: free-art-license-1.3.txt or
+  http://artlibre.org/licence/lal/en
+* Creative Commons Zero 1.0: cc0-1.0.txt or
+  https://creativecommons.org/publicdomain/zero/1.0/
 
 
 ### Art attributions
@@ -126,10 +130,12 @@ Entry".
 From LPC 2012. Mix of of Skyler Robert Colladay's "Feral Fantom's
 Entry" and Lanea Zimmerman's base artwork.
 
+
 #### data/maps/*
 
 To the extent possible under law, Niels G. W. Serup has waived all copyright
-and related or neighboring rights to these maps. Creative Commons Zero 1.0.
+and related or neighboring rights to these maps; see the Creative Commons Zero
+1.0 document for more information.
 
 
 Installation
@@ -138,6 +144,9 @@ Installation
 Indirect Assassin is written in Haskell. It should work with the Glasgow
 Haskell Compiler (GHC) of version 6.12.1 and up. Indirect Assassin also uses
 Haskell's SDL library.
+
+Indirect Assassin has only been tested on GNU/Linux, but it should also run on
+other systems such as MS Windows or Apple Mac.
 
 Indirect Assassin does not require very new versions of GHC and its SDL
 library, so it's very likely that the packages from your package manager are
@@ -234,7 +243,8 @@ to the professors).
 
 When you start the game, you play on the first map from the list of maps. At
 any time you can shift to another map (since the game is turn-based, you can
-actually have games on many maps at the same time).
+actually have games on many maps at the same time). You can also play the same
+map at the same time across several frames.
 
 When you win or lose on a map, you receive a message on the screen stating your
 win/lose state. Accepting that state lets you play on that map again.
@@ -261,7 +271,7 @@ this process requires luck.
 
 Indirect Assassin comes with HOWMANY built-in maps. All maps are files in a
 simple textual format. The included maps can be found in
-<datainstallationdir>/maps/ (or, if you downloaded the tarball, in data/maps/).
+datainstallationdir/maps/ (or, if you downloaded the tarball, in data/maps/).
 
 ##### How to create your own maps
 
@@ -288,6 +298,8 @@ A small map might look like this:
 * Accept message: Enter
 * Go to next map: Control+Right arrow key
 * Go to previous map: Control+Left arrow key
+* Play current map in a next, different frame: Control+Up arrow key
+* Play current map in a previous, different frame: Control+Up arrow key
 
 
 Liberated Pixel Cup
@@ -301,4 +313,5 @@ This document
 -------------
 
 To the extent possible under law, Niels G. W. Serup has waived all copyright
-and related or neighboring rights to this document. Creative Commons Zero 1.0.
+and related or neighboring rights to this document; see the Creative Commons
+Zero 1.0 document for more information.

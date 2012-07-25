@@ -1,6 +1,6 @@
-module GameGraphics where
+ module IndirectAssassin.GameRunner where
 
--- Global
+ -- Global
 import Prelude hiding (Right, Left)
 import Data.Maybe
 import Data.Word
@@ -11,44 +11,16 @@ import qualified Graphics.UI.SDL.Image as SDLi
 import Graphics.UI.SDL.Keysym
 import Control.Concurrent (threadDelay)
 -- Local
-import Misc
-import GameMap
-import Logic
+import IndirectAssassin.Misc
+import IndirectAssassin.Surfaces
+import IndirectAssassin.Map
+import IndirectAssassin.Logic
 
-createColorSurf :: Int -> Int -> Word32 -> IO SDL.Surface
-createColorSurf w h color = do
-  surf <- SDL.createRGBSurface [] w h 32 0xff000000 0x00ff0000 0x0000ff00 0x000000ff
-  SDL.fillRect surf Nothing $ SDL.Pixel color
-  return surf
+createSurf :: Int -> Int -> IO SDL.Surface
+createSurf w h = SDL.createRGBSurface [] w h 32 0xff000000 0x00ff0000 0x0000ff00 0x000000ff
 
-dirToWCN Up    = 0
-dirToWCN Left  = 1
-dirToWCN Down  = 2
-dirToWCN Right = 3
-
-walkCycle d i surf = (surf, SDL.Rect (64 * i) (64 * (dirToWCN d)) 64 64)
-
-itemAnimations = []
-mkAnimation "Matthew_Nash__Public Toilet Tileset/toilet.png" 64 1
-mkAnimation "base_assets/3barrels.png" 64 1
-mkAnimation "base_assets/4buckets.png" 64 1
-mkAnimation "base_assets/bat_yellow.png" 32 12
-mkAnimation "base_assets/bee_green.png" 32 12
-
-mkAnimation "base_assets/wall.png" 32 12
-
-
-soldierNormal = SDLi.load "Barbara_Rivera__Concept Art for LPC Entry/malesoldiernormal.png"
-soldierZombie = SDLi.load "Barbara_Rivera__Concept Art for LPC Entry/malesoldierzombie.png"
-                            
-fbi = SDLi.load "Skyler_Robert_Colladay__FeralFantom's Entry/FBI_walk_cycle.png"
-professor = SDLi.load "Skyler_Robert_Colladay__FeralFantom's Entry/professor_walk_cycle_no_hat.png"
-
-getSurf (Guard d _ _) i = walkCycle d i male
-getSurf (User d _)    i = walkCycle d i male
-getSurf Wall          _ = (createColorSurf 64 64 0x0000ffff, SDL.Rect 0 0 64 64)
-getSurf (Item _)      _ = (createColorSurf 64 64 0x0000ffff, SDL.Rect 0 0 64 64)
-getSurf Empty         _ = (createColorSurf 64 64 0x00000000, SDL.Rect 0 0 64 64)
+colorSurf :: Word32 -> SDL.Surface -> IO ()
+colorSurf color surf = SDL.fillRect surf Nothing $ SDL.Pixel color
 
 drawObject :: SDL.Surface -> Map.Map Position Position -> Int -> (Position, Cell) -> IO ()
 drawObject screenSurf posChanges frameIdx (p, obj) = do
@@ -59,7 +31,7 @@ drawObject screenSurf posChanges frameIdx (p, obj) = do
   return ()
   where
     offset = 7 * (frameIdx + 1)
-    ((x, y), i) = maybe (p * (64, 64), 0) (\t -> (calcP t, frameIdx)) $ Map.lookup p posChanges
+    ((x, y), i) = maybe (p * fromInteger 64, 0) (\t -> (calcP t, frameIdx)) $ Map.lookup p posChanges
     calcP (x', y') = (x' * 64 + (calcOffset x' $ fst p), y' * 64 + (calcOffset y' $ snd p))
     calcOffset t' t | t' < t = offset
                     | t' > t = -offset
@@ -80,24 +52,29 @@ animate msecs nFrames act = do
             anim t $ i + 1
         frmDur = 1000 * fromIntegral msecs / fromIntegral nFrames :: Double
 
-runGame :: [Game] -> IO ()
-runGame games = do
-  let game = head games
-  let (width, height) = (800, 600)
+runGames :: [Game] -> IO ()
+runGames games = do
+  let (width, height) = (768, 576) -- hardcoded because I'm lazy (like the language, but different)
 
   SDL.init [SDL.InitEverything]
   SDL.setVideoMode width height 32 []
-  SDL.setCaption "Staelth Nijna" "staelth nijna"
+  SDL.setCaption "Indirect Assassin" "indirectassassin"
 
   screenSurf <- SDL.getVideoSurface
-  background <- createColorSurf width height 0x000000ff
-
-  drawObjects screenSurf background game Map.empty 0
-  gameLoop screenSurf background (game, Map.empty)
---  mapM_ SDL.freeSurface objects
+  let gameLists = map (\game -> createInfCenterList [game]) games
+  let (gameListLists, currentGameList) = createInfCenterList vertical
+  gamesLoop screenSurf gameListLists currentGameList
   SDL.quit
+
+data Action = NoAction | PreviousGame | NextGame | PreviousMap | NextMap 
+            | ToggleCheat | GoUp | GoLeft | GoDown | GoRight | Accept
+            | Item Item
+
+gamesLoop :: SDL.Surface -> CenterList (CenterList Game, Game) -> (CenterList Game, Game) -> IO ()
+gamesLoop screenSurf gameListLists (currentGameList, currentGame) = do
+  nextElement currentGameList currentGame
+  nextElement gameListLists (currentGameList, currentGame)
   
-  where 
     drawObjects screenSurf background (gameMap, _) posChanges n = do
       SDL.blitSurface background Nothing screenSurf Nothing
       mapM_ (drawObject screenSurf posChanges n) $ Map.toList gameMap
@@ -128,3 +105,20 @@ runGame games = do
           maybe (return ()) (gameLoop screenSurf background) $ newGame2
         doStuff (game, userPosChange) = maybe Nothing doStuff2 $ nextStep game
           where doStuff2 (game', otherPosChanges) = Just (game', Map.union userPosChange otherPosChanges)
+
+
+
+eventAction :: SDL.Event -> Action
+eventAction (SDL.KeyDown (Keysym k mods c))
+  | KeyModCtrl `elem` mods = case k of 
+      SDLK_UP    -> PreviousGame
+      SDLK_DOWN  -> NextGame
+      SDLK_LEFT  -> PreviousMap
+      SDLK_RIGHT -> NextMap
+      SDLK_x     -> ToggleCheat
+  | k == SDLK_UP    = GoUp
+  | k == SDLK_LEFT  = GoLeft
+  | k == SDLK_DOWN  = GoDown
+  | k == SDLK_RIGHT = GoRight
+  | k == SDLK_RETURN || k == SDLK_KP_ENTER = Accept
+  | otherwise = maybe NoAction Item $ charToItem $ toLower c 
