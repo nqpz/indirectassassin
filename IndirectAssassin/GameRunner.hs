@@ -22,20 +22,6 @@ createSurf w h = SDL.createRGBSurface [] w h 32 0xff000000 0x00ff0000 0x0000ff00
 colorSurf :: Word32 -> SDL.Surface -> IO ()
 colorSurf color surf = SDL.fillRect surf Nothing $ SDL.Pixel color
 
-drawObject :: SDL.Surface -> Map.Map Position Position -> Int -> (Position, Cell) -> IO ()
-drawObject screenSurf posChanges frameIdx (p, obj) = do
-  let (surf, sr) = getSurf obj i
-  let dr = SDL.Rect x y 0 0
-  surf' <- surf
-  SDL.blitSurface surf' (Just sr) screenSurf (Just dr)
-  return ()
-  where
-    offset = 7 * (frameIdx + 1)
-    ((x, y), i) = maybe (p * fromInteger 64, 0) (\t -> (calcP t, frameIdx)) $ Map.lookup p posChanges
-    calcP (x', y') = (x' * 64 + (calcOffset x' $ fst p), y' * 64 + (calcOffset y' $ snd p))
-    calcOffset t' t | t' < t = offset
-                    | t' > t = -offset
-                    | otherwise = 0
 
 animate :: Int -> Int -> (Int -> IO ()) -> IO ()
 animate msecs nFrames act = do
@@ -52,6 +38,10 @@ animate msecs nFrames act = do
             anim t $ i + 1
         frmDur = 1000 * fromIntegral msecs / fromIntegral nFrames :: Double
 
+newtype GameExtra = GameExtra { getGame :: Game
+                              , isCheating :: Bool
+                              }
+
 runGames :: [Game] -> IO ()
 runGames games = do
   let (width, height) = (768, 576) -- hardcoded because I'm lazy (like the language, but different)
@@ -61,64 +51,76 @@ runGames games = do
   SDL.setCaption "Indirect Assassin" "indirectassassin"
 
   screenSurf <- SDL.getVideoSurface
-  let gameLists = map (\game -> createInfCenterList [game]) games
-  let (gameListLists, currentGameList) = createInfCenterList vertical
-  gamesLoop screenSurf gameListLists currentGameList
+  let gameLists = map (\game -> createInfCenterList [GameExtra (game, False)]) games
+  let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
+  startTimeCount
+  gamesLoop screenSurf (gameListLists, (currentGameList, currentGame)) $ \() -> render screenSurf currentGame
   SDL.quit
 
-data Action = NoAction | PreviousGame | NextGame | PreviousMap | NextMap 
-            | ToggleCheat | GoUp | GoLeft | GoDown | GoRight | Accept
-            | Item Item
 
-gamesLoop :: SDL.Surface -> CenterList (CenterList Game, Game) -> (CenterList Game, Game) -> IO ()
-gamesLoop screenSurf gameListLists (currentGameList, currentGame) = do
-  nextElement currentGameList currentGame
-  nextElement gameListLists (currentGameList, currentGame)
-  
-    drawObjects screenSurf background (gameMap, _) posChanges n = do
-      SDL.blitSurface background Nothing screenSurf Nothing
-      mapM_ (drawObject screenSurf posChanges n) $ Map.toList gameMap
-      SDL.flip screenSurf
-    
-    gameLoop screenSurf background (game@(gameMap, _), posChanges) = do
-      animate 360 9 $ drawObjects' posChanges
-      drawObjects' Map.empty 0
-      eventLoop
-      where 
-        drawObjects' = drawObjects screenSurf background game
-
-        checkEvent (SDL.KeyDown (Keysym k _ _))
-          | k == SDLK_UP    = r Up
-          | k == SDLK_RIGHT = r Right
-          | k == SDLK_DOWN  = r Down
-          | k == SDLK_LEFT  = r Left
-          where r d = return $ Just $ moveUser game d
-        checkEvent SDL.Quit = return Nothing
-        checkEvent _             = do
-          event <- SDL.waitEventBlocking
-          checkEvent event
-    
-        eventLoop = do
-          event <- SDL.waitEventBlocking
-          newGame <- checkEvent event
-          let newGame2 = maybe Nothing doStuff newGame
-          maybe (return ()) (gameLoop screenSurf background) $ newGame2
-        doStuff (game, userPosChange) = maybe Nothing doStuff2 $ nextStep game
-          where doStuff2 (game', otherPosChanges) = Just (game', Map.union userPosChange otherPosChanges)
+gamesLoop :: SDL.Surface -> (CenterList (CenterList GameExtra, GameExtra), (CenterList GameExtra, GameExtra)) (() -> IO ()) -> IO ()
+gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) runWhenNoEvents = do
+  event <- SDL.pollEvent
+  case event of 
+    NoEvent -> runWhenNoEvents ()
+    x       -> actOnEvent x
+  where actOnEvent event = case eventAction x of 
+          Nothing -> gamesLoop rootSurf all runWhenNoEvents
+          Just t -> case t of
+            PreviousGame -> gamesLoop rootSurf (gameListLists, previousGame) $ \() -> render rootSurf $ snd previousGame
+            NextGame -> gamesLoop rootSurf (gameListLists, nextGame) $ \() -> render rootSurf $ snd nextGame
+            PreviousMap -> gamesLoop rootSurf previousMap $ \() -> render rootSurf $ snd $ snd previousMap
+            NextMap -> gamesLoop rootSurf nextMap $ \() -> render rootSurf $ snd $ snd nextMap
+            ToggleCheat -> let newGameExtra = GameExtra (getGame currentGame, not $ isCheating currentGame)
+                           in gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)) $ \() -> render rootSurf newGameExtra
+            AgentAction action -> gamesLoop rootSurf all makeAndShowNewGame
+              where makeAndShowNewGame () = do
+                      let newGame = currentGame `step` action
+                      renderInterpolated currentGame newGame
+                      waitForNextFrame
+                      gamesLoop rootSurf (gameListLists, (currentGameList, newGame)) \() -> waitForNextFrame
+            Redraw -> gamesLoop rootSurf all \() -> render rootSurf currentGame
+            ExitGame -> return ()
+  where  
+    previousGame = previousElement currentGameList currentGame
+    nextGame     = nextElement     currentGameList currentGame
+    previousMap  = previousElement gameListLists (currentGameList, currentGame)
+    nextMap      = nextElement     gameListLists (currentGameList, currentGame)
 
 
+waitForNextFrame :: IO ()
+waitForNextFrame = do
+  delay <- calculateDelay
+  threadDelay $ floor delay
 
-eventAction :: SDL.Event -> Action
+calculateDelay :: IO Double
+calculateDelay = undefined
+
+render :: SDL.Surface -> GameExtra -> IO ()
+render rootSurf game = do
+  drawFloor game
+  drawWall game
+  drawItems game
+  drawProfessors game
+  drawAgent game
+
+-- TODO
+renderInterPolated :: SDL.Surface -> GameExtra -> GameExtra -> IO ()
+renderInterPolated rootSurf oldGame newGame = render rootSurf newGame
+
+eventAction :: SDL.Event -> Maybe UserAction
 eventAction (SDL.KeyDown (Keysym k mods c))
   | KeyModCtrl `elem` mods = case k of 
-      SDLK_UP    -> PreviousGame
-      SDLK_DOWN  -> NextGame
-      SDLK_LEFT  -> PreviousMap
-      SDLK_RIGHT -> NextMap
-      SDLK_x     -> ToggleCheat
-  | k == SDLK_UP    = GoUp
-  | k == SDLK_LEFT  = GoLeft
-  | k == SDLK_DOWN  = GoDown
-  | k == SDLK_RIGHT = GoRight
+      SDLK_UP    -> Just PreviousGame
+      SDLK_DOWN  -> Just NextGame
+      SDLK_LEFT  -> Just PreviousMap
+      SDLK_RIGHT -> Just NextMap
+      SDLK_x     -> Just ToggleCheat
+      SDLK_ESC   -> Just ExitGame
+  | k == SDLK_UP    = Just $ AgentAction GoUp
+  | k == SDLK_LEFT  = Just $ AgentAction GoLeft
+  | k == SDLK_DOWN  = Just $ AgentAction GoDown
+  | k == SDLK_RIGHT = Just $ AgentAction GoRight
   | k == SDLK_RETURN || k == SDLK_KP_ENTER = Accept
-  | otherwise = maybe NoAction Item $ charToItem $ toLower c 
+  | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toLower c
+eventAction SDL.Quit = Just ExitGame
