@@ -77,7 +77,7 @@ type Game = Map.Map Position Cell
 
 data AgentAction = Go Direction | UseItem Item
 
-data UserAction = NoAction | PreviousGame | NextGame | PreviousMap | NextMap 
+data UserAction = NoAction | PrevGame | NextGame | PrevMap | NextMap 
                 | ToggleCheat | Accept | AgentAction AgentAction | Redraw 
                 | ExitGame
 
