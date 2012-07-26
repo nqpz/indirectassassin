@@ -148,10 +148,10 @@ eventAction (SDL.KeyDown (Keysym k mods c))
       SDLK_RIGHT -> Just NextMap
       SDLK_x     -> Just ToggleCheat
       SDLK_r     -> Just Redraw
-  | k == SDLK_UP    = Just $ AgentAction GoUp
-  | k == SDLK_LEFT  = Just $ AgentAction GoLeft
-  | k == SDLK_DOWN  = Just $ AgentAction GoDown
-  | k == SDLK_RIGHT = Just $ AgentAction GoRight
+  | k == SDLK_UP    = Just $ AgentAction $ Go Up
+  | k == SDLK_LEFT  = Just $ AgentAction $ Go Left
+  | k == SDLK_DOWN  = Just $ AgentAction $ Go Down
+  | k == SDLK_RIGHT = Just $ AgentAction $ Go Right
   | k == SDLK_ESC   = Just ExitGame
   | k == SDLK_RETURN || k == SDLK_KP_ENTER = Accept
   | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toLower c

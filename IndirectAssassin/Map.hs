@@ -67,17 +67,4 @@ isEmpty :: Cell -> Bool
 isEmpty Empty = True
 isEmpty _     = False
 
-
-
--- 
-nextPosition :: Direction -> Direction -> Position -> (Direction, Position)
-nextPosition Up rd (x, y) = (rd, p')
-  where p' = case rd of
-          Up    -> (x, y - 1)
-          Right -> (x + 1, y)
-          Down  -> (x, y + 1)
-          Left  -> (x - 1, y)
-nextPosition d rd p = nextPosition (pred d) (succ rd) p
-
-cellAt gMap p = maybe Empty id $ Map.lookup p gMap
-
+cellAt game p = maybe Empty id $ Map.lookup p game

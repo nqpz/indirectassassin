@@ -49,8 +49,10 @@ createInfCenterList :: [a] -> (CenterList a, a)
 createInfCenterList xs'@(x : xs) = ((cycle $ reverse xs', cycle xs), x)
 
 
-data AgentAction = GoUp | GoLeft | GoDown | GoRight | UseItem Item
+data AgentAction = Go Direction | UseItem Item
 
 data UserAction = NoAction | PreviousGame | NextGame | PreviousMap | NextMap 
                 | ToggleCheat | Accept | AgentAction AgentAction | Redraw 
                 | ExitGame
+
+data StepEffect = NewGame | NoChange | WonGame | LostGame
