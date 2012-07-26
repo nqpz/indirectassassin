@@ -4,7 +4,7 @@ module IndirectAssassin.Main (main) where
 import System.Environment
 -- Local
 import IndirectAssassin.Misc
-import IndirectAssassin.MapParser (loadGameMap)
+import IndirectAssassin.Map (loadGameMap)
 import IndirectAssassin.GameRunner
 
 main :: IO ()

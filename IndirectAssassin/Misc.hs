@@ -10,23 +10,8 @@ import Prelude hiding (Right, Left)
 (.<) n f v = (.<) (n - 1) f $ f v
 infixr 9 .<
 
-chunk :: Int -> [a] -> [[a]]
-chunk n xs@(_ : xs') = let (ys, zs) = splitAt n xs
-                        in ys : chunk n xs'
-chunk _ [] = []
-
-unchunk :: [[a]] -> [a]
-unchunk = map head
-
 onPair :: (a -> b) -> (c -> d) -> (a, c) -> (b, d)
 onPair f g (a, b) = (f a, g b)
-
-splitSub :: Eq a => [a] -> [a] -> ([a], [a])
-splitSub d = split' . chunk (length d)
-  where split' (xs@(x : _) : xss) 
-          | xs == d   = ([], unchunk $ drop (length d - 1) xss)
-          | otherwise = onPair (x:) id $ split' xss
-        split' [] = ([], [])
 
 anyelem :: Eq a => [a] -> [a] -> Bool
 anyelem xs ys = (\y -> y `elem` xs) `any` ys

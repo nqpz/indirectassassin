@@ -39,29 +39,19 @@ http://
 Installation
 ------------
 
-Indirect Assassin is written in Haskell. It should work with the Glasgow
-Haskell Compiler (GHC) of version 6.12.1 and up. Indirect Assassin also uses
-Haskell's SDL library.
+Indirect Assassin is written in Haskell. It should work with not-too-old
+versions of the Glasgow Haskell Compiler (GHC). Indirect Assassin also uses the
+Haskell SDL library.
 
 Indirect Assassin has only been tested on GNU/Linux, but it should also run on
 other systems such as MS Windows or Apple Mac.
 
-Indirect Assassin does not require very new versions of GHC and its SDL
-library, so it's very likely that the packages from your package manager are
-enough up-to-date, even if they're a few years old. With an apt-based package
-manager, for example, you can run:
-
-    aptitude install ghc6 libghc6-sdl-dev libghc6-sdl-image-dev \
-      libghc6-sdl-mixer-dev libghc6-sdl-ttf-dev
-      
-to install all necessary packages for Indirect Assassin to run. With other
-package managers it's probably equally simple. If you cannot or will not use a
-package manager, you can download GHC and the Haskell Platform from
+You can download GHC and the Haskell Platform from
 http://hackage.haskell.org/platform/ --- once you have downloaded and installed
 those, you can use a newly installed program, "cabal", to download and install
 Haskell SDL bindings:
 
-    cabal install sdl sdl-image sdl-mixer sdl-ttf
+    cabal install sdl sdl-image sdl-mixer sdl-ttf missingh
 
 Once this is done, run (from the root directory of the extracted tarball):
 
@@ -74,7 +64,8 @@ and the game should be installed.
 
 ### With Cabal
 
-Note that, if you have installed the Haskell Platform, you can just run
+Note that, if you have installed the Haskell Platform prior to downloading this
+program, you can just run
 
     cabal install indirectassassin
     

@@ -1,26 +1,33 @@
-Name: IndirectAssassin
-Version: 0.1.0
-Synopsis: A turn-based stealth game
+Cabal-Version: >= 1.2
+Name:         IndirectAssassin
+Version:      0.1.0
+Synopsis:     A turn-based stealth game
 Description:
-             A game where you move about in a dark dungeon with the goal of
-             indirectly terminating your enemies and not getting discovered.
-License: GPL
+              A game where you move about in a dark dungeon with the goal of
+              indirectly terminating your enemies and not getting discovered.
+Category:     Game
+License:      GPL
 License-File: COPYING.txt
-Author: Niels G. W. Serup
-Copyright: 2012 Niels G. W. Serup
-Maintainer: Niels G. W. Serup <ns@metanohi.name>
-Build-Type: Simple
-Cabal-Version >= 1.2
-Category: Game
-Homepage: http://metanohi.name/projects/indirectassassin/
-Data-Files: data/floor.png data/wall.png data/embosst1.ttf
-            data/character/agent.png data/character/professor.png
-            data/character/soldier_normal.png data/character/soldier_zombie.png
-            data/item/barrels.png data/item/buckets.png data/item/bat_yellow.png
-            data/item/bee_green.png data/item/diamond.png
-            data/item/ice_shield.png data/item/tomato.png
+Author:       Niels G. W. Serup
+Copyright:    2012 Niels G. W. Serup
+Maintainer:   Niels G. W. Serup <ns@metanohi.name>
+Build-Type:   Simple
+Homepage:     http://metanohi.name/projects/indirectassassin/
+Data-Files:   data/floor.png data/wall.png data/embosst1.ttf
+              data/character/agent.png data/character/professor.png
+              data/character/soldier_normal.png
+              data/character/soldier_zombie.png data/item/barrels.png
+              data/item/buckets.png data/item/bat_yellow.png
+              data/item/bee_green.png data/item/diamond.png
+              data/item/ice_shield.png data/item/tomato.png
 
 Executable indirectassassin
-  Main-is: Main.hs
-  hs-source-dirs: IndirectAssassin
-  Build-Depends: base, SDL >= 0.5.4, SDL-ttf, SDL-mixer >= 0.55, SDL-image
+    Main-is: Main.hs
+    other-modules: IndirectAssassin.BaseTypes
+                   IndirectAssassin.Misc
+                   IndirectAssassin.Map
+                   IndirectAssassin.Logic
+                   IndirectAssassin.Graphics
+                   IndirectAssassin.GameRunner
+                   Paths_IndirectAssassin
+    Build-Depends: base, MissingH, SDL, SDL-ttf, SDL-image, SDL-mixer, containers

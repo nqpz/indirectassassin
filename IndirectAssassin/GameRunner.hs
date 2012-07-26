@@ -231,18 +231,3 @@ eventAction (SDL.KeyDown (Keysym k mods c))
   | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toLower c
 eventAction SDL.Quit = Just ExitGame
 
-
-animate :: Int -> Int -> (Int -> IO ()) -> IO ()
-animate msecs nFrames act = do
-  t <- SDL.getTicks
-  anim t 0
-  where anim t i = do
-          if i == nFrames
-            then return ()
-            else do
-            act i
-            t' <- SDL.getTicks
-            let delay = max (fromIntegral i * frmDur - 1000.0 * (fromIntegral (t' - t))) 0
-            threadDelay $ floor delay
-            anim t $ i + 1
-        frmDur = 1000 * fromIntegral msecs / fromIntegral nFrames :: Double

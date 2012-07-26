@@ -1,8 +1,10 @@
 module IndirectAssassin.Logic where
 
 -- Global
+import Prelude hiding (Right, Left)
 import qualified Data.Map as Map
 -- Local
+import IndirectAssassin.BaseTypes
 import IndirectAssassin.Misc
 import IndirectAssassin.Map
 import IndirectAssassin.Graphics

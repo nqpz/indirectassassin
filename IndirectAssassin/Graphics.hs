@@ -11,13 +11,14 @@ import qualified Graphics.UI.SDL.TTF as SDLttf
 import Paths_IndirectAssassin (getDataFileName)
 -- Local
 import IndirectAssassin.Misc
+import IndirectAssassin.BaseTypes
 import IndirectAssassin.Map
-import IndirectAssassin.Logic
-import IndirectAssassin.Types
 
 floorS = SDLi.load =<< getDataFileName "data/floor.png" 
 wall   = SDLi.load =<< getDataFileName "data/wall.png"
-font   = SDLttf.openFont =<< getDataFileName "data/embosst1.ttf"
+font   = do 
+  path <- getDataFileName "data/embosst1.ttf"
+  return $ SDLttf.openFont path 20
 agent         = walkcycle  9 4  50 "data/character/agent.png"
 professor     = walkcycle  9 4  50 "data/character/professor.png"
 soldierNormal = walkcycle  9 4  50 "data/character/soldier_normal.png"
@@ -44,17 +45,19 @@ walkcycle xTiles yTiles frameDur path direc i fps = do
   path' <- getDataFileName path
   surf <- SDLi.load path'
   let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
-  let (tileW, tileH) = (floor $ w / xTiles, floor $ h / yTiles)
-  let oneDir = floor $ tileW * tileH / 4
+  let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, floor $ fromIntegral h / fromIntegral yTiles)
+  let oneDir = floor $ fromIntegral tileW * fromIntegral tileH / 4
   let nOffset = oneDir * fromEnum direc
-  let n = nOffset + floor $ fromIntegral oneDir * i / fps
-  let (x, y) = (n `rem` xTiles, floor $ n / xTiles)
+  let n = nOffset + (floor $ fromIntegral oneDir * fromIntegral i / fromIntegral fps)
+  let (x, y) = (n `rem` xTiles, floor $ fromIntegral n / fromIntegral xTiles)
   let rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
-  return (surf, rect)
+  return (surf, Just rect)
 
 animation :: Int -> Int -> Int -> String -> Word32 -> Word32 -> IO SurfPart
 animation xTiles yTiles frameDur path = walkcycle xTiles (4 * yTiles) frameDur path (toEnum 0)
 
 still :: String -> Word32 -> Word32 -> IO SurfPart
-still path _ _ = (surf, SDL.getSize surf)
-  where surf = SDLi.load path
+still path _ _ = do
+  path' <- getDataFileName path
+  surf <- SDLi.load path'
+  return (surf, Nothing)

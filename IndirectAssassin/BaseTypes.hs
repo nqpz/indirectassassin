@@ -2,6 +2,7 @@ module IndirectAssassin.BaseTypes where
 
 -- Global
 import Prelude hiding (Right, Left)
+import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import Data.Char
@@ -34,7 +35,7 @@ instance Enum Direction where
 type Position = (Int, Int)
 type StillVector = (Direction, Position)
 
-type SurfPart = (SDL.Surface, SDL.Rect)
+type SurfPart = (SDL.Surface, Maybe SDL.Rect)
 
 
 type CenterList a = ([a], [a])
@@ -49,6 +50,31 @@ createInfCenterList :: [a] -> (CenterList a, a)
 createInfCenterList xs'@(x : xs) = ((cycle $ reverse xs', cycle xs), x)
 
 
+data Item = Barrels   -- A
+          | Buckets   -- U
+          | YellowBat -- E
+          | GreenBee  -- R
+          | Diamond   -- I
+          | Tomato    -- O
+          | IceShield -- C
+          | TurnAtWall Direction
+          deriving (Show, Eq)
+
+
+data Cell = Wall
+          | Empty
+          | Professor { getDirection :: Direction 
+                      , getItems :: [Item]
+                      }
+          | Agent  { getDirection :: Direction 
+                   , getItems :: [Item]
+                   }
+          | Item { getItem :: Item
+                 }
+          deriving (Show)
+
+type Game = Map.Map Position Cell
+
 data AgentAction = Go Direction | UseItem Item
 
 data UserAction = NoAction | PreviousGame | NextGame | PreviousMap | NextMap 
@@ -57,9 +83,9 @@ data UserAction = NoAction | PreviousGame | NextGame | PreviousMap | NextMap
 
 data StepEffect = NewGame | NoChange | GameWon Bool
 
-newtype GameExtra = GameExtra { getGame :: Game
-                              , hasWon :: Maybe Bool
-                              , isCheating :: Bool
-                              , getOrigGame :: Game
-                              }
+data GameExtra = GameExtra { getGame :: Game
+                           , hasWon :: Maybe Bool
+                           , isCheating :: Bool
+                           , getOrigGame :: Game
+                           }
 
