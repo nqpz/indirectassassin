@@ -149,26 +149,54 @@ calculateDelay = do
   let delay = max 0 $ fromIntegral msecs - n * 1000 / fps
   return toIntegral $ delay * 1000
 
-drawFloor :: SDL.Surface -> Game -> IO ()
-drawFloor surf game = do
-  floorSurf <- floorS
-  [ blitFloor x y | x <- [0..ceiling $ width / 96], y <- [0..ceiling $ height / 32] ]
-  where blitFloor x y = SDL.blitSurface floorSurf Nothing surf 
-                        $ Just $ Rect (x * 96) (y * 32) 96 32
+drawFloor :: SDL.Surface -> IO ()
+drawFloor surf = [ blitFloor x y | x <- [0..ceiling $ width / 96], y <- [0..ceiling $ height / 32] ]
+  where blitFloor x y = do
+          floorSurf <- floorS
+          return $ SDL.blitSurface floorSurf Nothing surf
+            $ Just $ Rect (x * 96) (y * 32) 96 32
+
+drawItems :: SDL.Surface -> Game -> IO ()
+drawItems surf game = [ blitItem pos item | (pos, Item item) <- filter isItem $ Map.toList game ]
+  where blitItem (x, y) item = do
+          (itemSurf, itemRect) <- itemToImage item getFrameNumber getFPS
+          let offset = (floor $ (64 - rectW itemRect) / 2, floor $ (64 - rectH itemRect) / 2)
+          return $ SDL.blitSurface itemSurf itemRect surf
+            $ Just $ Rect (x * 64 + fst offset) (y * 64 + snd offset) (rectW itemRect) (rectH itemRect)
+  
+drawProfessors :: SDL.Surface -> Game -> IO ()
+drawProfessors surf game = [ blitProf dir pos items | (pos, Professor dir items) <- filter isProfessor $ Map.toList game ]
+  where blitProf dir pos@(x, y) items = do
+          (profSurf, profRect) <- profSprite dir pos items getFrameNumber getFPS
+          return $ SDL.blitSurface profSurf profRect surf
+            $ Just $ Rect (x * 64) (y * 64) 64 64
+        
+drawAgent :: SDL.Surface -> Game -> IO ()
+drawAgent surf game = do
+  let ((x, y), Agent dir items) = head $ filter isAgent $ Map.toList game
+  (agentSurf, agentRect) <- agent getFrameNumber getFPS
+  return $ SDL.blitSurface agentSurf agentRect surf
+    $ Just $ Rect (x * 64) (y * 64) 64 64
 
 drawWalls :: SDL.Surface -> Game -> IO ()
-drawWalls surf game = do
-  u
-  
+drawWalls surf game = [ blitWall pos | pos <- sortBy depth $ map fst $ filter isWall $ Map.toList game ]
+  where depth (_, y0) (_, y1) = compare y0 y1
+        blitWall (x, y) = do
+          wallSurf <- wall 
+          return $ SDL.blitSurface wallSurf Nothing surf
+            $ Just $ Rect (x * 64) (y * 64 - 26) 64 88
 
-  
+drawDarkness :: SDL.Surface -> Game -> IO ()
+drawDarkness = do
+  return ()
+
 render :: SDL.Surface -> GameExtra -> IO ()
 render rootSurf gameExtra = do
-  drawFloor rootSurf game
-  drawWalls rootSurf game
+  drawFloor rootSurf
   drawItems rootSurf game
   drawProfessors rootSurf game
   drawAgent rootSurf game
+  drawWalls rootSurf game
   if cheat then return () else drawDarkness game
   waitForNextFrame
     where (game, cheat) = (getGame gameExtra, isCheating gameExtra)

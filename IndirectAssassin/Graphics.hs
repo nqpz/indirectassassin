@@ -27,12 +27,20 @@ buckets       = still              "data/item/buckets.png"
 bat           = animation  3 4  80 "data/item/bat_yellow.png"
 bee           = animation  3 4  80 "data/item/bee_green.png"
 diamond       = animation  4 1 120 "data/item/diamond.png"
-iceShield     = animation  4 4  60 "data/item/ice_shield.png"
 tomato        = animation 16 2  40 "data/item/tomato.png"
+iceShield     = animation  4 4  60 "data/item/ice_shield.png"
 
+itemToImage :: Item -> Word32 -> Word32 -> IO SurfPart
+itemToImage Barrels = barrels
+itemToImage Buckets = buckets
+itemToImage YellowBat = bat
+itemToImage GreenBee = bee
+itemToImage Diamond = diamond
+itemToImage Tomato = tomato
+itemToImage IceShield = iceShield
 
-walkcycle :: Int -> Int -> Int -> String -> Direction -> Word32 -> IO SurfPart
-walkcycle xTiles yTiles frameDur path direc i = do
+walkcycle :: Int -> Int -> Int -> String -> Direction -> Word32 -> Word32 -> IO SurfPart
+walkcycle xTiles yTiles frameDur path direc i fps = do
   path' <- getDataFileName path
   surf <- SDLi.load path'
   let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
@@ -44,9 +52,9 @@ walkcycle xTiles yTiles frameDur path direc i = do
   let rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
   return (surf, rect)
 
-animation :: Int -> Int -> Int -> String -> Word32 -> IO SurfPart
-animation xTiles yTiles frameDur path = walkcycle xTiles (4 * yTiles) frameDur path $ toEnum 0
+animation :: Int -> Int -> Int -> String -> Word32 -> Word32 -> IO SurfPart
+animation xTiles yTiles frameDur path = walkcycle xTiles (4 * yTiles) frameDur path (toEnum 0)
 
-still :: String -> Word32 -> IO SurfPart
-still path _ = (surf, SDL.getSize surf)
+still :: String -> Word32 -> Word32 -> IO SurfPart
+still path _ _ = (surf, SDL.getSize surf)
   where surf = SDLi.load path

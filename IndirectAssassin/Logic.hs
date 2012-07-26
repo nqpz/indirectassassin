@@ -33,7 +33,7 @@ step game action = case action of
 
 profLightLength dir (x, y) items = 3
 
-profSprite dir (x, y) items = professor
+profSprite dir (x, y) items = professor dir
 
 profNextDirPos dir (x, y) items = (dir, (x, y))
 
