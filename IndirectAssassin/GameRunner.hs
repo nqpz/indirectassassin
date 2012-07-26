@@ -90,12 +90,15 @@ runGames games = do
   let gameLists = map (\game -> createInfCenterList [GameExtra game Nothing False game]) games
   let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
   startCount
+  putStrLn "Start."
   gamesLoop screenSurf (gameListLists, (currentGameList, currentGame)) $ \() -> render screenSurf currentGame
+  putStrLn "End."
   SDL.quit
 
 
 gamesLoop :: SDL.Surface -> (CenterList (CenterList GameExtra, GameExtra), (CenterList GameExtra, GameExtra)) -> (() -> IO ()) -> IO ()
 gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) runWhenNoEvents = do
+  putStrLn "test"
   event <- SDL.pollEvent
   case event of 
     SDL.NoEvent -> runWhenNoEvents ()
@@ -245,4 +248,4 @@ eventAction (SDL.KeyDown (Keysym k mods c))
   | k == SDLK_RETURN || k == SDLK_KP_ENTER = Just Accept
   | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toLower c
 eventAction SDL.Quit = Just ExitGame
-
+eventAction _ = Nothing
