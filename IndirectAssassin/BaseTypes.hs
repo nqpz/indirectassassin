@@ -35,7 +35,7 @@ instance Enum Direction where
 type Position = (Int, Int)
 type StillVector = (Direction, Position)
 
-type SurfPart = (SDL.Surface, Maybe SDL.Rect)
+type SurfPart = (SDL.Surface, SDL.Rect)
 
 
 type CenterList a = ([a], [a])

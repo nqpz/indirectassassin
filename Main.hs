@@ -1,4 +1,4 @@
-module IndirectAssassin.Main (main) where
+module Main (main) where
 
 -- Global
 import System.Environment
@@ -10,12 +10,14 @@ import IndirectAssassin.GameRunner
 main :: IO ()
 main = do
   args <- getArgs
+  games <- outM $ map loadGameMap args
   if ["--help", "-h"] `anyelem` args
-  then printHelp
-  else runGames =<< outM $ map loadGameMap args
+    then printHelp
+    else runGames games
 
 printHelp :: IO ()
-printHelp = putStrLn "Usage: " +++ getProgName +++ " [MAP]...
-
-Indirect Assassin is a turn-based stealth game.
-To play, you should read the documentation README."
+printHelp = do
+  progName <- getProgName
+  putStrLn $ "Usage: " ++ progName ++ " [MAP]...\n\n\
+\Indirect Assassin is a turn-based stealth game.\n\
+\To play, you should read the documentation README."

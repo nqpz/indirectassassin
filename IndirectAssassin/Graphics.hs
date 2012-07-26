@@ -18,7 +18,7 @@ floorS = SDLi.load =<< getDataFileName "data/floor.png"
 wall   = SDLi.load =<< getDataFileName "data/wall.png"
 font   = do 
   path <- getDataFileName "data/embosst1.ttf"
-  return $ SDLttf.openFont path 20
+  SDLttf.openFont path 20
 agent         = walkcycle  9 4  50 "data/character/agent.png"
 professor     = walkcycle  9 4  50 "data/character/professor.png"
 soldierNormal = walkcycle  9 4  50 "data/character/soldier_normal.png"
@@ -51,7 +51,7 @@ walkcycle xTiles yTiles frameDur path direc i fps = do
   let n = nOffset + (floor $ fromIntegral oneDir * fromIntegral i / fromIntegral fps)
   let (x, y) = (n `rem` xTiles, floor $ fromIntegral n / fromIntegral xTiles)
   let rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
-  return (surf, Just rect)
+  return (surf, rect)
 
 animation :: Int -> Int -> Int -> String -> Word32 -> Word32 -> IO SurfPart
 animation xTiles yTiles frameDur path = walkcycle xTiles (4 * yTiles) frameDur path (toEnum 0)
@@ -60,4 +60,4 @@ still :: String -> Word32 -> Word32 -> IO SurfPart
 still path _ _ = do
   path' <- getDataFileName path
   surf <- SDLi.load path'
-  return (surf, Nothing)
+  return (surf, SDL.Rect 0 0 (SDL.surfaceGetWidth surf) (SDL.surfaceGetHeight surf))
