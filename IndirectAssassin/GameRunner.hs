@@ -15,7 +15,8 @@ import System.IO.Unsafe (unsafePerformIO)
 import Data.IORef
 -- Local
 import IndirectAssassin.Misc
-import IndirectAssassin.Surfaces
+import IndirectAssassin.BaseTypes
+import IndirectAssassin.Graphics
 import IndirectAssassin.Map
 import IndirectAssassin.Logic
 
@@ -34,6 +35,9 @@ theFrameCount = unsafePerformIO $ newIORef 0
 
 theMaxFPS :: IORef Word32
 theMaxFPS = unsafePerformIO $ newIORef 50
+
+theFPS :: IORef Word32
+theFPS = unsafePerformIO $ newIORef 50
 
 startCount :: IO ()
 startCount = writeIORef theStartTime SDL.getTicks >> writeIORef theFrameCount 0
@@ -56,22 +60,23 @@ setMaxFPS fps = writeIORef theMaxFPS fps
 getMaxFPS :: IO Word32
 getMaxFPS = readIORef theMaxFPS
 
+getFPS :: IO Word32
+getFPS = readIORef theFPS
+
+updateFPS :: IO ()
+updateFPS = writeIORef theFPS $ floor calculateFPS
+
 calculateFPS :: IO Double
 calculateFPS = do
   time <- getTimePassed
   n <- getFrameNumber
   return fromIntegral n / 1000 * fromIntegral time
 
-newtype GameExtra = GameExtra { getGame :: Game
-                              , hasWon :: Maybe Bool
-                              , isCheating :: Bool
-                              , getOrigGame :: Game
-                              }
+
+(width, height) = (768, 576) -- hardcoded because I'm lazy (like the language, but different)
 
 runGames :: [Game] -> IO ()
 runGames games = do
-  let (width, height) = (768, 576) -- hardcoded because I'm lazy (like the language, but different)
-
   SDL.init [SDL.InitEverything]
   SDL.setVideoMode width height 32 []
   SDL.setCaption "Indirect Assassin" "indirectassassin"
@@ -134,6 +139,7 @@ waitForNextFrame = do
   delay <- calculateDelay
   threadDelay $ floor delay
   increaseFrameNumber
+  updateFPS
 
 calculateDelay :: IO Double
 calculateDelay = do
@@ -143,14 +149,28 @@ calculateDelay = do
   let delay = max 0 $ fromIntegral msecs - n * 1000 / fps
   return toIntegral $ delay * 1000
 
--- TODO: stop always cheating
+drawFloor :: SDL.Surface -> Game -> IO ()
+drawFloor surf game = do
+  floorSurf <- floorS
+  [ blitFloor x y | x <- [0..ceiling $ width / 96], y <- [0..ceiling $ height / 32] ]
+  where blitFloor x y = SDL.blitSurface floorSurf Nothing surf 
+                        $ Just $ Rect (x * 96) (y * 32) 96 32
+
+drawWalls :: SDL.Surface -> Game -> IO ()
+drawWalls surf game = do
+  u
+  
+
+  
 render :: SDL.Surface -> GameExtra -> IO ()
 render rootSurf gameExtra = do
-  drawFloor game
-  drawWall game
-  drawItems game
-  drawProfessors game
-  drawAgent game
+  drawFloor rootSurf game
+  drawWalls rootSurf game
+  drawItems rootSurf game
+  drawProfessors rootSurf game
+  drawAgent rootSurf game
+  if cheat then return () else drawDarkness game
+  waitForNextFrame
     where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
 
 -- TODO
@@ -160,7 +180,10 @@ renderInterPolated rootSurf oldGame newGame = render rootSurf newGame
 renderEndScreen :: SDL.Surface -> Bool -> IO ()
 renderEndScreen rootSurf won = do
   fillSurf (if won then 0x0000ffff else 0xff0000ff) rootSurf
-  
+  SDLttf.renderTextSolid font $ message won $ SDL.Color 0 0 0
+  where message True  = "You have won!"
+        message False = "You have lost!"
+  waitForNextFrame
 
 eventAction :: SDL.Event -> Maybe UserAction
 eventAction (SDL.KeyDown (Keysym k mods c))

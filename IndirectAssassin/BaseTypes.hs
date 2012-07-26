@@ -56,3 +56,10 @@ data UserAction = NoAction | PreviousGame | NextGame | PreviousMap | NextMap
                 | ExitGame
 
 data StepEffect = NewGame | NoChange | GameWon Bool
+
+newtype GameExtra = GameExtra { getGame :: Game
+                              , hasWon :: Maybe Bool
+                              , isCheating :: Bool
+                              , getOrigGame :: Game
+                              }
+

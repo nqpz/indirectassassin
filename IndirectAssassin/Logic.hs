@@ -5,6 +5,7 @@ import qualified Data.Map as Map
 -- Local
 import IndirectAssassin.Misc
 import IndirectAssassin.Map
+import IndirectAssassin.Graphics
 
 
 nextDirPos :: Direction -> Direction -> Position -> (Direction, Position)
