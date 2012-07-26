@@ -34,7 +34,6 @@ instance Enum Direction where
 type Position = (Int, Int)
 type StillVector = (Direction, Position)
 
-type Frame = (Int, Int)
 type SurfPart = (SDL.Surface, SDL.Rect)
 
 

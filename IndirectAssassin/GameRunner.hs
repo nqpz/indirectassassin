@@ -10,6 +10,8 @@ import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import Graphics.UI.SDL.Keysym
 import Control.Concurrent (threadDelay)
+import System.IO.Unsafe (unsafePerformIO)
+import Data.IORef
 -- Local
 import IndirectAssassin.Misc
 import IndirectAssassin.Surfaces
@@ -19,24 +21,45 @@ import IndirectAssassin.Logic
 createSurf :: Int -> Int -> IO SDL.Surface
 createSurf w h = SDL.createRGBSurface [] w h 32 0xff000000 0x00ff0000 0x0000ff00 0x000000ff
 
-colorSurf :: Word32 -> SDL.Surface -> IO ()
-colorSurf color surf = SDL.fillRect surf Nothing $ SDL.Pixel color
+fillSurf :: Word32 -> SDL.Surface -> IO ()
+fillSurf color surf = SDL.fillRect surf Nothing $ SDL.Pixel color
 
 
-animate :: Int -> Int -> (Int -> IO ()) -> IO ()
-animate msecs nFrames act = do
-  t <- SDL.getTicks
-  anim t 0
-  where anim t i = do
-          if i == nFrames
-            then return ()
-            else do
-            act i
-            t' <- SDL.getTicks
-            let delay = max (fromIntegral i * frmDur - 1000.0 * (fromIntegral (t' - t))) 0
-            threadDelay $ floor delay
-            anim t $ i + 1
-        frmDur = 1000 * fromIntegral msecs / fromIntegral nFrames :: Double
+theStartTime :: IORef Word32
+theStartTime = unsafePerformIO $ newIORef 0
+
+theFrameCount :: IORef Word32
+theFrameCount = unsafePerformIO $ newIORef 0
+
+theMaxFPS :: IORef Word32
+theMaxFPS = unsafePerformIO $ newIORef 50
+
+startCount :: IO ()
+startCount = writeIORef theStartTime SDL.getTicks >> writeIORef theFrameCount 0
+
+getTimePassed :: IO Word32
+getTimePassed = do
+  start <- readIORef theStartTime
+  now <- SDL.getTicks
+  return $ now - start
+
+getFrameNumber :: IO Word32
+getFrameNumber = readIORef theFrameCount
+
+increaseFrameNumber :: IO ()
+increaseFrameNumber = writeIORef theFrameCount $ 1 + readIORef theFrameCount
+
+setMaxFPS :: Word32 -> IO ()
+setMaxFPS fps = writeIORef theMaxFPS fps
+
+getMaxFPS :: IO Word32
+getMaxFPS = readIORef theMaxFPS
+
+calculateFPS :: IO Double
+calculateFPS = do
+  time <- getTimePassed
+  n <- getFrameNumber
+  return fromIntegral n / 1000 * fromIntegral time
 
 newtype GameExtra = GameExtra { getGame :: Game
                               , isCheating :: Bool
@@ -53,7 +76,7 @@ runGames games = do
   screenSurf <- SDL.getVideoSurface
   let gameLists = map (\game -> createInfCenterList [GameExtra (game, False)]) games
   let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
-  startTimeCount
+  startCount
   gamesLoop screenSurf (gameListLists, (currentGameList, currentGame)) $ \() -> render screenSurf currentGame
   SDL.quit
 
@@ -75,7 +98,7 @@ gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) runWhenNo
                            in gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)) $ \() -> render rootSurf newGameExtra
             AgentAction action -> gamesLoop rootSurf all makeAndShowNewGame
               where makeAndShowNewGame () = do
-                      let newGame = currentGame `step` action
+                      let newGame = GameExtra ((getGame currentGame) `step` action, isCheating currentGame)
                       renderInterpolated currentGame newGame
                       waitForNextFrame
                       gamesLoop rootSurf (gameListLists, (currentGameList, newGame)) \() -> waitForNextFrame
@@ -92,17 +115,25 @@ waitForNextFrame :: IO ()
 waitForNextFrame = do
   delay <- calculateDelay
   threadDelay $ floor delay
+  increaseFrameNumber
 
 calculateDelay :: IO Double
-calculateDelay = undefined
+calculateDelay = do
+  msecs <- getTimePassed
+  n <- getFrameNumber
+  fps <- getMaxFPS
+  let delay = max 0 $ fromIntegral msecs - n * 1000 / fps
+  return toIntegral $ delay * 1000
 
+-- TODO: stop always cheating
 render :: SDL.Surface -> GameExtra -> IO ()
-render rootSurf game = do
+render rootSurf gameExtra = do
   drawFloor game
   drawWall game
   drawItems game
   drawProfessors game
   drawAgent game
+    where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
 
 -- TODO
 renderInterPolated :: SDL.Surface -> GameExtra -> GameExtra -> IO ()
@@ -116,11 +147,28 @@ eventAction (SDL.KeyDown (Keysym k mods c))
       SDLK_LEFT  -> Just PreviousMap
       SDLK_RIGHT -> Just NextMap
       SDLK_x     -> Just ToggleCheat
-      SDLK_ESC   -> Just ExitGame
+      SDLK_r     -> Just Redraw
   | k == SDLK_UP    = Just $ AgentAction GoUp
   | k == SDLK_LEFT  = Just $ AgentAction GoLeft
   | k == SDLK_DOWN  = Just $ AgentAction GoDown
   | k == SDLK_RIGHT = Just $ AgentAction GoRight
+  | k == SDLK_ESC   = Just ExitGame
   | k == SDLK_RETURN || k == SDLK_KP_ENTER = Accept
   | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toLower c
 eventAction SDL.Quit = Just ExitGame
+
+
+animate :: Int -> Int -> (Int -> IO ()) -> IO ()
+animate msecs nFrames act = do
+  t <- SDL.getTicks
+  anim t 0
+  where anim t i = do
+          if i == nFrames
+            then return ()
+            else do
+            act i
+            t' <- SDL.getTicks
+            let delay = max (fromIntegral i * frmDur - 1000.0 * (fromIntegral (t' - t))) 0
+            threadDelay $ floor delay
+            anim t $ i + 1
+        frmDur = 1000 * fromIntegral msecs / fromIntegral nFrames :: Double

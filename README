@@ -300,6 +300,7 @@ A small map might look like this:
 * Go to previous map: Control+Left arrow key
 * Play current map in a next, different frame: Control+Up arrow key
 * Play current map in a previous, different frame: Control+Up arrow key
+* Redraw screen: Ctrl+R
 
 
 Liberated Pixel Cup

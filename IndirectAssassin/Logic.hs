@@ -6,6 +6,19 @@ import qualified Data.Map as Map
 import IndirectAssassin.Misc
 import IndirectAssassin.Map
 
+
+step :: Game -> AgentAction -> Game
+step game action = undefined
+
+
+
+
+
+
+
+
+
+
 turn :: Direction -> GameMap -> StillVector -> StillVector
 turn relDir gMap (dir, p) = case cellAt gMap nextPos of
   Empty  -> (nextDir, nextPos)

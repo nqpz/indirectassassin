@@ -8,7 +8,6 @@ import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import Graphics.UI.SDL.Keysym
-import Control.Concurrent (threadDelay)
 -- Local
 import IndirectAssassin.Misc
 import IndirectAssassin.Map
@@ -30,8 +29,8 @@ iceShield     = animation  4 4  60 "ice_shield.png"
 tomato        = animation 16 2  40 "tomato.png"
 
 
-walkcycle :: Int -> Int -> Int -> String -> Direction -> Frame -> IO SurfPart
-walkcycle xTiles yTiles frameDur path direc (i, fps) = (surf, rect)
+walkcycle :: Int -> Int -> Int -> String -> Direction -> Word32 -> IO SurfPart
+walkcycle xTiles yTiles frameDur path direc i = (surf, rect)
   where rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
         (x, y) = (n `rem` xTiles, floor $ n / xTiles)
         n = nOffset + floor $ fromIntegral oneDir * i / fps
@@ -41,9 +40,9 @@ walkcycle xTiles yTiles frameDur path direc (i, fps) = (surf, rect)
         (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
         surf = SDLi.load path
 
-animation :: Int -> Int -> Int -> String -> Frame -> IO SurfPart
-animation xTiles yTiles frameDur path = walkcycle xTiles (4 * yTiles) path $ toEnum 0
+animation :: Int -> Int -> Int -> String -> Word32 -> IO SurfPart
+animation xTiles yTiles frameDur path = walkcycle xTiles (4 * yTiles) frameDur path $ toEnum 0
 
-still :: String -> Frame -> IO SurfPart
-still path frame = (surf, SDL.getSize surf)
-                   where surf = SDLi.load path
+still :: String -> Word32 -> IO SurfPart
+still path _ = (surf, SDL.getSize surf)
+  where surf = SDLi.load path
