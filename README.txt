@@ -15,10 +15,10 @@ professors must die. And you're always surprised when they do, because you
 never killed one...
 
 
-Author
-------
+Authors, licenses and attributions
+----------------------------------
 
-The author of Indirect Assassin is Niels G. W. Serup <ns@metanohi.name>.
+See the file AUTHORS.txt
 
 
 Version
@@ -34,108 +34,6 @@ Indirect Assassin has a web page at
 http://metanohi.name/projects/indirectassassin/ which always contains the
 newest version of the program. Indirect Assassin is also on Hackage; see
 http://
-
-
-Licenses
---------
-
-Indirect Assassin is free software under the terms of the GNU General Public
-License version 3 (or any later version). All artwork used in Indirect Assassin
-is free culture, mainly under Creative Commons Attribution-Share Alike 3.0.
-
-### Documents
-
-* Creative Commons Attribution-Share Alike 3.0: cc-by-sa-3.0.txt or
-  http://creativecommons.org/licenses/by-sa/3.0/
-* GNU General Public License, version 3: gpl-3.0.txt or
-  http://www.gnu.org/licenses/gpl-3.0.html
-* Free Art License, version 1.3: free-art-license-1.3.txt or
-  http://artlibre.org/licence/lal/en
-* Creative Commons Zero 1.0: cc0-1.0.txt or
-  https://creativecommons.org/publicdomain/zero/1.0/
-
-
-### Art attributions
-
-Most of the artwork used in Indirect Assassin comes from the Liberated Pixel
-Cup 2012 (this game is a participant in that contest, by the way). Art from LPC
-2012 is dual-licensed under Creative Commons Attribution-Share Alike 3.0 and
-GNU General Public License, version 3. All LPC-based art can be downloaded in
-its original form at http://lpc.opengameart.org/
-
-
-#### data/sound/background_music.ogg
-
-Edited version of the track "les memoires mortes" from the album "obscures
-reflections" by the artist MOONDARK; see
-http://www.jamendo.com/en/track/77577/les-memoires-mortes for more
-information. Licensed under the Free Art License 1.3.
-
-
-#### data/character/soldier_(normal|zombie).png
-
-From LPC 2012. Barbara Rivera's "Concept Art for LPC Entry".
-
-
-#### data/character/(professor|agent).png
-
-From LPC 2012. Skyler Robert Colladay's "Feral Fantom's Entry".
-
-
-#### data/item/toilet.png
-
-From LPC 2012. Edited version of Matthew Nash's "Public Toilet Tileset".
-
-
-#### data/sound/branch-break.flac
-
-From LPC 2012. Johnathan Roatch's "Miscellaneous SFX".
-
-
-#### data/item/tomato.png
-
-From LPC 2012. Johann Charlot's "Shoot'em up graphic kit". Also available under
-GNU LGPL v3.
-
-
-#### data/item/ice_shield.png
-
-From LPC 2012. Daniel Eddeland's "Farming tilesets, magic animations and UI
-elements".
-
-
-#### data/item/diamond.png
-
-From LPC 2012. Chris Phillips' "Team River Fox".
-
-
-#### data/item/(barrels|buckets).png
-
-From LPC 2012. Edited versions of Lanea Zimmerman's base artwork.
-
-
-#### data/item/(bat_yellow|bee_green).png
-
-From LPC 2012. Edited versions of Charles Sanchez' base artwork.
-
-
-#### data/floor.png
-
-From LPC 2012. Edited version of Skyler Robert Colladay's "Feral Fantom's
-Entry".
-
-
-#### data/wall.png
-
-From LPC 2012. Mix of of Skyler Robert Colladay's "Feral Fantom's
-Entry" and Lanea Zimmerman's base artwork.
-
-
-#### data/maps/*
-
-To the extent possible under law, Niels G. W. Serup has waived all copyright
-and related or neighboring rights to these maps; see the Creative Commons Zero
-1.0 document for more information.
 
 
 Installation
@@ -265,6 +163,15 @@ this process requires luck.
 
 #### Items
 
+There are 7 items:
+
+* Barrels
+* Buckets
+* Yellow bat
+* Green bee
+* Diamond
+* Tomato
+* Ice shield
 
 
 #### Maps

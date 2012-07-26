@@ -8,6 +8,7 @@ import Data.Ratio
 import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
+import qualified Graphics.UI.SDL.TTF as SDLttf
 import Graphics.UI.SDL.Keysym
 import Control.Concurrent (threadDelay)
 import System.IO.Unsafe (unsafePerformIO)
@@ -62,7 +63,9 @@ calculateFPS = do
   return fromIntegral n / 1000 * fromIntegral time
 
 newtype GameExtra = GameExtra { getGame :: Game
+                              , hasWon :: Maybe Bool
                               , isCheating :: Bool
+                              , getOrigGame :: Game
                               }
 
 runGames :: [Game] -> IO ()
@@ -74,7 +77,7 @@ runGames games = do
   SDL.setCaption "Indirect Assassin" "indirectassassin"
 
   screenSurf <- SDL.getVideoSurface
-  let gameLists = map (\game -> createInfCenterList [GameExtra (game, False)]) games
+  let gameLists = map (\game -> createInfCenterList [GameExtra (game, Nothing, False, game)]) games
   let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
   startCount
   gamesLoop screenSurf (gameListLists, (currentGameList, currentGame)) $ \() -> render screenSurf currentGame
@@ -94,13 +97,28 @@ gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) runWhenNo
             NextGame -> gamesLoop rootSurf (gameListLists, nextGame) $ \() -> render rootSurf $ snd nextGame
             PreviousMap -> gamesLoop rootSurf previousMap $ \() -> render rootSurf $ snd $ snd previousMap
             NextMap -> gamesLoop rootSurf nextMap $ \() -> render rootSurf $ snd $ snd nextMap
-            ToggleCheat -> let newGameExtra = GameExtra (getGame currentGame, not $ isCheating currentGame)
+            ToggleCheat -> let newGameExtra = GameExtra (getGame currentGame, hasWon currentGame, not $ isCheating currentGame, getOrigGame currentGame)
                            in gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)) $ \() -> render rootSurf newGameExtra
+            Accept -> maybe (gamesLoop rootSurf all runWhenNoEvents) 
+                      (const (gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)) 
+                              $ \() -> render rootSurf newGameExtra)) (hasWon currentGame)
+                      where newGameExtra = GameExtra (getOrigGame currentGame, Nothing, isCheating currentGame, getOrigGame currentGame)
             AgentAction action -> gamesLoop rootSurf all makeAndShowNewGame
               where makeAndShowNewGame () = do
-                      let newGame = GameExtra ((getGame currentGame) `step` action, isCheating currentGame)
-                      renderInterpolated currentGame newGame
-                      waitForNextFrame
+                      case hasWon currentGame of
+                        Nothing -> makeAndShow'
+                        Just b -> renderEndScreen b
+                    makeAndShow' = do
+                      let (stepEffect, game') = (getGame currentGame) `step` action
+                      let newGame = GameExtra (game', case stepEffect of 
+                                                  GameWon b -> Just b
+                                                  _ -> Nothing, isCheating currentGame,
+                                               getOrigGame currentGame)
+                      case stepEffect of
+                        NoChange -> return ()
+                        NewGame -> renderInterpolated rootSurf currentGame newGame
+                        GameWon b -> renderInterpolated rootSurf currentGame newGame >> renderEndScreen rootSurf b
+
                       gamesLoop rootSurf (gameListLists, (currentGameList, newGame)) \() -> waitForNextFrame
             Redraw -> gamesLoop rootSurf all \() -> render rootSurf currentGame
             ExitGame -> return ()
@@ -138,6 +156,11 @@ render rootSurf gameExtra = do
 -- TODO
 renderInterPolated :: SDL.Surface -> GameExtra -> GameExtra -> IO ()
 renderInterPolated rootSurf oldGame newGame = render rootSurf newGame
+
+renderEndScreen :: SDL.Surface -> Bool -> IO ()
+renderEndScreen rootSurf won = do
+  fillSurf (if won then 0x0000ffff else 0xff0000ff) rootSurf
+  
 
 eventAction :: SDL.Event -> Maybe UserAction
 eventAction (SDL.KeyDown (Keysym k mods c))
