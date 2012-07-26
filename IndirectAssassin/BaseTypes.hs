@@ -55,4 +55,4 @@ data UserAction = NoAction | PreviousGame | NextGame | PreviousMap | NextMap
                 | ToggleCheat | Accept | AgentAction AgentAction | Redraw 
                 | ExitGame
 
-data StepEffect = NewGame | NoChange | WonGame | LostGame
+data StepEffect = NewGame | NoChange | GameWon Bool
