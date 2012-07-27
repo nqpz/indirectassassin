@@ -92,3 +92,4 @@ data GameExtra = GameExtra { getGame :: Game
                            , getOrigGame :: Game
                            }
                deriving (Show, Eq)
+
