@@ -71,21 +71,24 @@ data Cell = Wall
                    }
           | Item { getItem :: Item
                  }
-          deriving (Show)
+          deriving (Show, Eq)
 
 type Game = Map.Map Position Cell
 
 data AgentAction = Go Direction | UseItem Item
+                 deriving (Show, Eq)
 
 data UserAction = NoAction | PrevGame | NextGame | PrevMap | NextMap 
                 | ToggleCheat | Accept | AgentAction AgentAction | Redraw 
                 | ExitGame
+                deriving (Show, Eq)
 
 data StepEffect = NewGame | NoChange | GameWon Bool
+                deriving (Show, Eq)
 
 data GameExtra = GameExtra { getGame :: Game
                            , hasWon :: Maybe Bool
                            , isCheating :: Bool
                            , getOrigGame :: Game
                            }
-
+               deriving (Show, Eq)

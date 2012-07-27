@@ -68,14 +68,12 @@ getFPS = readIORef theFPS
 
 updateFPS :: IO ()
 updateFPS = do
-  fps <- calculateFPS
-  writeIORef theFPS $ floor fps
-
-calculateFPS :: IO Double
-calculateFPS = do
   time <- getTimePassed
-  n <- getFrameNumber
-  return $ fromIntegral n / 1000 * fromIntegral time
+  fn <- getFrameNumber
+  writeIORef theFPS $ floor $ calculateFPS time fn
+
+calculateFPS :: Word32 -> Word32 -> Double
+calculateFPS time fn = fromIntegral fn * 1000 / fromIntegral time
 
 
 (width, height) = (768, 576) -- hardcoded because I'm lazy (like the language, but different)
@@ -91,39 +89,39 @@ runGames games = do
   let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
   startCount
   putStrLn "Start."
-  gamesLoop screenSurf (gameListLists, (currentGameList, currentGame)) $ \() -> render screenSurf currentGame
+  gamesLoop screenSurf (gameListLists, (currentGameList, currentGame))
   putStrLn "End."
   SDL.quit
 
 
-gamesLoop :: SDL.Surface -> (CenterList (CenterList GameExtra, GameExtra), (CenterList GameExtra, GameExtra)) -> (() -> IO ()) -> IO ()
-gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) runWhenNoEvents = do
-  putStrLn "test"
+gamesLoop :: SDL.Surface -> (CenterList (CenterList GameExtra, GameExtra), (CenterList GameExtra, GameExtra)) -> IO ()
+gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) = do
   event <- SDL.pollEvent
   case event of 
-    SDL.NoEvent -> runWhenNoEvents ()
-    x       -> actOnEvent x
-  where actOnEvent event = case eventAction event of 
-          Nothing -> gamesLoop rootSurf all runWhenNoEvents
+    SDL.NoEvent -> actOnEvent Nothing
+    x           -> case eventAction x of
+      Nothing -> gamesLoop rootSurf all
+      x -> actOnEvent x
+  where actOnEvent event = case event of 
+          Nothing -> render rootSurf currentGame >> gamesLoop rootSurf all
           Just t -> case t of
-            PrevGame -> gamesLoop rootSurf (gameListLists, prevGame) $ \() -> render rootSurf $ snd prevGame
-            NextGame -> gamesLoop rootSurf (gameListLists, nextGame) $ \() -> render rootSurf $ snd nextGame
-            PrevMap -> gamesLoop rootSurf prevMap $ \() -> render rootSurf $ snd $ snd prevMap
-            NextMap -> gamesLoop rootSurf nextMap $ \() -> render rootSurf $ snd $ snd nextMap
+            PrevGame -> render rootSurf (snd prevGame) >> gamesLoop rootSurf (gameListLists, prevGame)
+            NextGame -> render rootSurf (snd nextGame) >> gamesLoop rootSurf (gameListLists, nextGame)
+            PrevMap -> render rootSurf (snd $ snd prevMap) >> gamesLoop rootSurf prevMap
+            NextMap -> render rootSurf (snd $ snd prevMap) >> gamesLoop rootSurf nextMap
             ToggleCheat -> let newGameExtra = GameExtra (getGame currentGame) (hasWon currentGame) (not $ isCheating currentGame) (getOrigGame currentGame)
-                           in gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)) $ \() -> render rootSurf newGameExtra
-            Accept -> maybe (gamesLoop rootSurf all runWhenNoEvents) 
-                      (const (gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)) 
-                              $ \() -> render rootSurf newGameExtra)) (hasWon currentGame)
+                           in render rootSurf newGameExtra >> gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra))
+            Accept -> maybe (render rootSurf currentGame >> gamesLoop rootSurf all) 
+                      (const (render rootSurf newGameExtra >> gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)))) (hasWon currentGame)
                       where newGameExtra = GameExtra (getOrigGame currentGame) Nothing (isCheating currentGame) (getOrigGame currentGame)
-            AgentAction action -> gamesLoop rootSurf all makeAndShowNewGame
-              where makeAndShowNewGame () = do
+            AgentAction action -> makeAndShowNewGame >> gamesLoop rootSurf all
+              where makeAndShowNewGame = do
                       case hasWon currentGame of
                         Nothing -> makeAndShow'
                         Just b -> renderEndScreen rootSurf b
                     makeAndShow' = do
                       let (stepEffect, game') = (getGame currentGame) `step` action
-                      let hasWon' = case stepEffect of 
+                      let hasWon' = case stepEffect of
                             GameWon b -> Just b
                             _ -> Nothing
                       let newGame = GameExtra game' hasWon' (isCheating currentGame) (getOrigGame currentGame)
@@ -131,9 +129,8 @@ gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) runWhenNo
                         NoChange -> return ()
                         NewGame -> renderInterpolated rootSurf currentGame newGame
                         GameWon b -> renderInterpolated rootSurf currentGame newGame >> renderEndScreen rootSurf b
-
-                      gamesLoop rootSurf (gameListLists, (currentGameList, newGame)) $ \() -> waitForNextFrame
-            Redraw -> gamesLoop rootSurf all $ \() -> render rootSurf currentGame
+                      gamesLoop rootSurf (gameListLists, (currentGameList, newGame))
+            Redraw -> render rootSurf currentGame >> gamesLoop rootSurf all
             ExitGame -> return ()
           where  
             prevGame = prevElement currentGameList currentGame
@@ -148,13 +145,14 @@ waitForNextFrame = do
   threadDelay $ floor delay
   increaseFrameNumber
   updateFPS
+  print =<< getFPS
 
 calculateDelay :: IO Double
 calculateDelay = do
   msecs <- getTimePassed
-  n <- getFrameNumber
+  fn <- getFrameNumber
   fps <- getMaxFPS
-  let delay = max 0 $ fromIntegral msecs - fromIntegral n * 1000 / fromIntegral fps
+  let delay = max 0 $ 1000 * fromIntegral fn / fromIntegral fps - fromIntegral msecs
   return $ delay * 1000
 
 drawFloor :: SDL.Surface -> IO [Bool]
@@ -171,7 +169,8 @@ drawItems surf game = outM [ blitItem pos item | (pos, Item item) <- filter (isI
         blitItem (x, y) item = do
           fn <- getFrameNumber
           fps <- getFPS
-          (itemSurf, itemRect) <- itemToImage item fn fps
+          (itemSurf, itemRect) <- itemToImage item (fn `rem` fps) fps
+          print itemRect
           let offset = (floor $ fromIntegral (64 - SDL.rectW itemRect) / 2, floor $ fromIntegral (64 - SDL.rectH itemRect) / 2)
           SDL.blitSurface itemSurf (Just itemRect) surf
             $ Just $ SDL.Rect (x * 64 + fst offset) (y * 64 + snd offset) (SDL.rectW itemRect) (SDL.rectH itemRect)
@@ -182,7 +181,7 @@ drawProfessors surf game = outM [ blitProf dir pos items | (pos, Professor dir i
         blitProf dir pos@(x, y) items = do
           fn <- getFrameNumber
           fps <- getFPS
-          (profSurf, profRect) <- profSprite dir pos items fn fps
+          (profSurf, profRect) <- profSprite dir pos items (fn `rem` fps) fps
           SDL.blitSurface profSurf (Just profRect) surf
             $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
         
@@ -191,7 +190,7 @@ drawAgent surf game = do
   let ((x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
   fn <- getFrameNumber
   fps <- getFPS
-  (agentSurf, agentRect) <- agent dir fn fps
+  (agentSurf, agentRect) <- agent dir (fn `rem` fps) fps
   SDL.blitSurface agentSurf (Just agentRect) surf
     $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
 
@@ -210,13 +209,19 @@ drawDarkness surf game = do
 
 render :: SDL.Surface -> GameExtra -> IO ()
 render rootSurf gameExtra = do
-  drawItems rootSurf game
-  drawProfessors rootSurf game
-  drawAgent rootSurf game
-  drawWalls rootSurf game
-  if cheat then return () else drawDarkness rootSurf game
-  waitForNextFrame
-    where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
+  case hasWon gameExtra of
+    Nothing -> render'
+    Just b -> renderEndScreen rootSurf b
+  where render' = do
+          drawFloor rootSurf
+          drawItems rootSurf game
+          drawProfessors rootSurf game
+          drawAgent rootSurf game
+          drawWalls rootSurf game
+          if cheat then return () else drawDarkness rootSurf game
+          SDL.flip rootSurf
+          waitForNextFrame
+          where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
 
 -- TODO
 renderInterpolated :: SDL.Surface -> GameExtra -> GameExtra -> IO ()
