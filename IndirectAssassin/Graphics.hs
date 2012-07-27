@@ -29,10 +29,10 @@ fillSurf color surf = SDL.fillRect surf Nothing $ SDL.Pixel color
 data Graphics = Graphics { getFloor :: SDL.Surface
                          , getWall :: SDL.Surface
                          , getFont :: SDLttf.Font
-                         , getAgent :: Direction -> Word32 -> Word32 -> SurfPart
-                         , getProfessor :: Direction -> Word32 -> Word32 -> SurfPart
-                         , getSoldierNormal :: Direction -> Word32 -> Word32 -> SurfPart
-                         , getSoldierZombie :: Direction -> Word32 -> Word32 -> SurfPart
+                         , getAgent :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
+                         , getProfessor :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
+                         , getSoldierNormal :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
+                         , getSoldierZombie :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
                          , getBarrels :: Word32 -> Word32 -> SurfPart
                          , getBuckets :: Word32 -> Word32 -> SurfPart
                          , getBat :: Word32 -> Word32 -> SurfPart
@@ -67,11 +67,13 @@ getGraphics = do
   iceShield <- prepAni 4 4 60 "data/item/ice_shield.png"
   
   return $ Graphics fullFloor wallSurf font
-    (walkcycle agentCycle) (walkcycle professorCycle)
-    (walkcycle soldierNormalCycle) (walkcycle soldierZombieCycle)
+    (dirExpand (walkcycle agentCycle, standStill agentCycle))
+    (dirExpand (walkcycle professorCycle, standStill professorCycle))
+    (dirExpand (walkcycle soldierNormalCycle, standStill soldierNormalCycle))
+    (dirExpand (walkcycle soldierZombieCycle, standStill soldierZombieCycle))
     (stillAni barrels) (stillAni buckets) (animation bat) (animation bee)
     (animation diamond) (animation tomato) (animation iceShield)
-    
+  where dirExpand (ani, still) direc = (ani direc, still direc)
 
 drawFloor :: SDL.Surface -> SDL.Surface -> IO [Bool]
 drawFloor floorSurf destSurf = outM [ blitFloor (x, y) | x <- [0..ceiling $ fromIntegral width / 96], y <- [0..ceiling $ fromIntegral height / 32] ]
@@ -107,8 +109,8 @@ prepAni xTiles yTiles frameDur path = do
 walkcycle :: AnimationInfo -> Direction -> Word32 -> Word32 -> SurfPart
 walkcycle (surf, tileW, tileH, oneDir, xTiles, yTiles) direc i fps = (surf, rect)
   where nOffset = oneDir * fromEnum direc
-        n = nOffset + (floor $ fromIntegral oneDir * fromIntegral i / fromIntegral fps)
-        (x, y) = (n `rem` xTiles, floor $ fromIntegral n / fromIntegral xTiles)
+        n = nOffset + (floor $ fromIntegral (oneDir - 1) * fromIntegral i / fromIntegral fps) + 1
+        (x, y) = (n `rem` (xTiles - 1), floor $ fromIntegral n / fromIntegral xTiles)
         rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
 
 prepWalkcycle :: Int -> Int -> Int -> String -> IO AnimationInfo
@@ -119,3 +121,6 @@ prepWalkcycle xTiles yTiles frameDur path = do
           let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, floor $ fromIntegral h / fromIntegral yTiles)
           let oneDir = floor $ fromIntegral xTiles * fromIntegral yTiles / 4
           return (surf, tileW, tileH, oneDir, xTiles, yTiles)
+
+standStill :: AnimationInfo -> Direction -> SurfPart
+standStill (surf, _, _, _, _, _) direc = (surf, SDL.Rect 0 (64 * fromEnum direc) 64 64)

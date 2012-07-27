@@ -38,7 +38,7 @@ step game action = case action of
 profLightLength :: Direction -> (Int, Int) -> [Item] -> Int
 profLightLength dir (x, y) items = 3
 
-profSprite :: Graphics -> Direction -> (Int, Int) -> [Item] -> Word32 -> Word32 -> SurfPart
+profSprite :: Graphics -> Direction -> (Int, Int) -> [Item] -> (Word32 -> Word32 -> SurfPart, SurfPart)
 profSprite g dir (x, y) items = getProfessor g dir
 
 profNextDirPos :: Direction -> (Int, Int) -> [Item] -> (Direction, (Int, Int))

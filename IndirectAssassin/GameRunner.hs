@@ -138,7 +138,6 @@ waitForNextFrame = do
   threadDelay $ floor delay
   increaseFrameNumber
   updateFPS
-  print =<< getFPS
 
 calculateDelay :: IO Double
 calculateDelay = do
@@ -175,16 +174,31 @@ drawProfessors surf graphics game = outM [ blitProf dir pos items | (pos, Profes
         blitProf dir pos@(x, y) items = do
           fn <- getFrameNumber
           fps <- getFPS
-          let (profSurf, profRect) = profSprite graphics dir pos items (fn `rem` fps) fps
+          let (profSurf, profRect) = (fst $ profSprite graphics dir pos items) (fn `rem` fps) fps
           SDL.blitSurface profSurf (Just profRect) surf
             $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
         
+drawProfessorsStill :: SDL.Surface -> Graphics -> Game -> IO [Bool]
+drawProfessorsStill surf graphics game = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
+  where blitProf :: Direction -> Position -> [Item] -> IO Bool 
+        blitProf dir pos@(x, y) items = do
+          let (profSurf, profRect) = snd $ profSprite graphics dir pos items
+          SDL.blitSurface profSurf (Just profRect) surf
+            $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+
 drawAgent :: SDL.Surface -> Graphics -> Game -> IO Bool
 drawAgent surf graphics game = do
   let ((x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
   fn <- getFrameNumber
   fps <- getFPS
-  let (agentSurf, agentRect) = (getAgent graphics) dir (fn `rem` fps) fps
+  let (agentSurf, agentRect) = (fst $ (getAgent graphics) dir) (fn `rem` fps) fps
+  SDL.blitSurface agentSurf (Just agentRect) surf
+    $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+
+drawAgentStill :: SDL.Surface -> Graphics -> Game -> IO Bool
+drawAgentStill surf graphics game = do
+  let ((x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
+  let (agentSurf, agentRect) = snd $ (getAgent graphics) dir
   SDL.blitSurface agentSurf (Just agentRect) surf
     $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
 
@@ -208,8 +222,8 @@ render rootSurf graphics gameExtra = do
   where render' = do
           SDL.blitSurface (getFloor graphics) Nothing rootSurf Nothing
           drawItems rootSurf graphics game
-          drawProfessors rootSurf graphics game
-          drawAgent rootSurf graphics game
+          drawProfessorsStill rootSurf graphics game
+          drawAgentStill rootSurf graphics game
           drawWalls rootSurf graphics game
           if cheat then return () else drawDarkness rootSurf graphics game
           SDL.flip rootSurf

@@ -164,6 +164,9 @@ There are 7 items:
 * Tomato
 * Ice shield
 
+Note that the game does not remind you which items you currently possess;
+you'll have to remember that yourself.
+
 
 #### Maps
 
