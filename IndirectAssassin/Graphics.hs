@@ -14,6 +14,7 @@ import IndirectAssassin.Misc
 import IndirectAssassin.BaseTypes
 import IndirectAssassin.Map
 
+
 floorS = SDLi.load =<< getDataFileName "data/floor.png" 
 wall   = SDLi.load =<< getDataFileName "data/wall.png"
 font   = do 
@@ -42,6 +43,7 @@ itemToImage IceShield = iceShield
 
 walkcycle :: Int -> Int -> Int -> String -> Direction -> Word32 -> Word32 -> IO SurfPart
 walkcycle xTiles yTiles frameDur path direc i fps = do
+  print 333333333333
   path' <- getDataFileName path
   surf <- SDLi.load path'
   let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
@@ -55,6 +57,7 @@ walkcycle xTiles yTiles frameDur path direc i fps = do
 
 animation :: Int -> Int -> Int -> String -> Word32 -> Word32 -> IO SurfPart
 animation xTiles yTiles frameDur path i fps = do
+  print 333333333333  
   path' <- getDataFileName path
   surf <- SDLi.load path'
   let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)

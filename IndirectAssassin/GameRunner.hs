@@ -75,8 +75,15 @@ updateFPS = do
 calculateFPS :: Word32 -> Word32 -> Double
 calculateFPS time fn = fromIntegral fn * 1000 / fromIntegral time
 
-
 (width, height) = (768, 576) -- hardcoded because I'm lazy (like the language, but different)
+
+fullFloor :: IO SDL.Surface
+fullFloor = do
+  surf <- createSurf width height
+  fillSurf 0xff00ffff surf
+  drawFloor surf
+  return surf
+
 
 runGames :: [Game] -> IO ()
 runGames games = do
@@ -210,10 +217,11 @@ render rootSurf gameExtra = do
     Nothing -> render'
     Just b -> renderEndScreen rootSurf b
   where render' = do
-          drawFloor rootSurf
+          floorS' <- fullFloor
+          SDL.blitSurface floorS' Nothing rootSurf Nothing
           -- drawItems rootSurf game
           -- drawProfessors rootSurf game
-          -- drawAgent rootSurf game
+          drawAgent rootSurf game
           -- drawWalls rootSurf game
           -- if cheat then return () else drawDarkness rootSurf game
           SDL.flip rootSurf
