@@ -211,11 +211,11 @@ render rootSurf gameExtra = do
     Just b -> renderEndScreen rootSurf b
   where render' = do
           drawFloor rootSurf
-          drawItems rootSurf game
-          drawProfessors rootSurf game
-          drawAgent rootSurf game
-          drawWalls rootSurf game
-          if cheat then return () else drawDarkness rootSurf game
+          -- drawItems rootSurf game
+          -- drawProfessors rootSurf game
+          -- drawAgent rootSurf game
+          -- drawWalls rootSurf game
+          -- if cheat then return () else drawDarkness rootSurf game
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
