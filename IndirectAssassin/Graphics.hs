@@ -61,7 +61,6 @@ animation xTiles yTiles frameDur path i fps = do
   let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, floor $ fromIntegral h / fromIntegral yTiles)
   let n = floor $ fromIntegral xTiles * fromIntegral yTiles * fromIntegral i / fromIntegral fps
   let (x, y) = (n `rem` xTiles, floor $ fromIntegral n / fromIntegral xTiles)
-  print (x, y, xTiles, yTiles, n)
   let rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
   return (surf, rect)
 

@@ -98,11 +98,9 @@ gamesLoop :: SDL.Surface -> (CenterList (CenterList GameExtra, GameExtra), (Cent
 gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) = do
   event <- SDL.pollEvent
   case event of 
-    SDL.NoEvent -> actOnEvent Nothing
-    x           -> case eventAction x of
-      Nothing -> gamesLoop rootSurf all
-      x -> actOnEvent x
-  where actOnEvent event = case event of 
+    SDL.NoEvent -> render rootSurf currentGame >> gamesLoop rootSurf all
+    x           -> actOnEvent x
+  where actOnEvent event = case eventAction event of
           Nothing -> render rootSurf currentGame >> gamesLoop rootSurf all
           Just t -> case t of
             PrevGame -> render rootSurf (snd prevGame) >> gamesLoop rootSurf (gameListLists, prevGame)
@@ -114,7 +112,7 @@ gamesLoop rootSurf all@(gameListLists, (currentGameList, currentGame)) = do
             Accept -> maybe (render rootSurf currentGame >> gamesLoop rootSurf all) 
                       (const (render rootSurf newGameExtra >> gamesLoop rootSurf (gameListLists, (currentGameList, newGameExtra)))) (hasWon currentGame)
                       where newGameExtra = GameExtra (getOrigGame currentGame) Nothing (isCheating currentGame) (getOrigGame currentGame)
-            AgentAction action -> makeAndShowNewGame >> gamesLoop rootSurf all
+            AgentAction action -> makeAndShowNewGame
               where makeAndShowNewGame = do
                       case hasWon currentGame of
                         Nothing -> makeAndShow'
@@ -170,7 +168,6 @@ drawItems surf game = outM [ blitItem pos item | (pos, Item item) <- filter (isI
           fn <- getFrameNumber
           fps <- getFPS
           (itemSurf, itemRect) <- itemToImage item (fn `rem` fps) fps
-          print itemRect
           let offset = (floor $ fromIntegral (64 - SDL.rectW itemRect) / 2, floor $ fromIntegral (64 - SDL.rectH itemRect) / 2)
           SDL.blitSurface itemSurf (Just itemRect) surf
             $ Just $ SDL.Rect (x * 64 + fst offset) (y * 64 + snd offset) (SDL.rectW itemRect) (SDL.rectH itemRect)
