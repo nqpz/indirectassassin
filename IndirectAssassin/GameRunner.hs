@@ -112,10 +112,9 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
                       where newGameExtra = GameExtra (getOrigGame currentGame) Nothing (isCheating currentGame) (getOrigGame currentGame)
             AgentAction action -> makeAndShowNewGame
               where makeAndShowNewGame = do
-                      print $ hasWon currentGame
                       case hasWon currentGame of
                         Nothing -> makeAndShow'
-                        Just b -> renderEndScreen rootSurf graphics b
+                        Just b -> renderEndScreen rootSurf graphics b >> gamesLoop rootSurf graphics all
                     makeAndShow' = do
                       let (stepEffect, game', posChanges) = (getGame currentGame) `step` action
                       let hasWon' = case stepEffect of
@@ -253,7 +252,6 @@ renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
   renderAll t (t + 320) t
   where renderAll start end now = do
           let i = floor (fromIntegral (now - start) / (fromIntegral (end - start) / 8))
-          print (start, end, now, i)
           renderOne i
           now' <- SDL.getTicks
           if now' < end
@@ -278,10 +276,11 @@ renderEndScreen :: SDL.Surface -> Graphics -> Bool -> IO ()
 renderEndScreen rootSurf graphics won = do
   fillSurf (if won then 0x0000ffff else 0xff0000ff) rootSurf
   textSurf <- SDLttf.renderTextSolid (getFont graphics) (message won) $ SDL.Color 0 0 0
-  SDL.blitSurface textSurf Nothing rootSurf Nothing
+  SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 20 0 0
+  SDL.flip rootSurf
   waitForNextFrame
-  where message True  = "You have won!"
-        message False = "You have lost!"
+  where message True  = "You have won."
+        message False = "You have lost."
 
 eventAction :: SDL.Event -> Maybe UserAction
 eventAction (SDL.KeyDown (Keysym k mods c))
