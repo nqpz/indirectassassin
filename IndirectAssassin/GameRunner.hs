@@ -112,6 +112,7 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
                       where newGameExtra = GameExtra (getOrigGame currentGame) Nothing (isCheating currentGame) (getOrigGame currentGame)
             AgentAction action -> makeAndShowNewGame
               where makeAndShowNewGame = do
+                      print $ hasWon currentGame
                       case hasWon currentGame of
                         Nothing -> makeAndShow'
                         Just b -> renderEndScreen rootSurf graphics b
@@ -247,8 +248,18 @@ render rootSurf graphics gameExtra = do
                 calcMapOffset game = (64, 64) * ((6, 4) - (fst $ getGameAgent game))
 
 renderInterpolated :: SDL.Surface -> Graphics -> GameExtra -> GameExtra -> Map.Map Position Position -> IO ()
-renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = outM [ renderOne i | i <- [0..7] ] >> return ()
-  where renderOne i = do
+renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
+  t <- SDL.getTicks
+  renderAll t (t + 320) t
+  where renderAll start end now = do
+          let i = floor (fromIntegral (now - start) / (fromIntegral (end - start) / 8))
+          print (start, end, now, i)
+          renderOne i
+          now' <- SDL.getTicks
+          if now' < end
+            then renderAll start end now'
+            else return ()
+        renderOne i = do
           blitFloor rootSurf graphics mapOffset
           drawItems rootSurf graphics game mapOffset
           drawProfessors rootSurf graphics game mapOffset posChanges i

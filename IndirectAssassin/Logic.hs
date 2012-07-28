@@ -50,7 +50,7 @@ gameOverWon game = if null $ filter (isAgent . snd) $ Map.toList game
                    then Just True
                    else if gameLost then Just False else Nothing
   where gameLost :: Bool
-        gameLost = maybe False (const True) $ Map.lookup (fst $ getGameAgent game) (getLighting game)
+        gameLost = maybe False (== Flashlight) $ Map.lookup (fst $ getGameAgent game) (getLighting game)
 
 runAI :: Game -> Map.Map Position Position -> (StepEffect, Game, Map.Map Position Position)
 runAI game posChanges = whenNotOver game $ runAI' game
