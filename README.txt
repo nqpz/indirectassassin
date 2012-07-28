@@ -125,16 +125,15 @@ sunglasses, but the professors cannot see that you can see in the dark. Your
 vision is limited to a few tiles forward, and not backward or to any
 sides. Professors use flashlights to see in the dark. They too can only see a
 few tiles ahead and not backwards or to the sides. You can see the light from
-their flashlights if it is sufficiently close to you, even if the light shines
-at you from your back or from a side. If you get covered in light so much that
-a professor can see you, he kills you instantly, and you lose. You can see the
-light one tile before the professor with the light source can see you, which
-might give you time to escape it.
+their flashlights. If you get covered in light so much that a professor can see
+you, he kills you instantly, and you lose. You can see the light one tile
+before the professor with the light source can see you, which might give you
+time to escape it.
 
-The tiles which are not visible due to either your night vision or the dim,
-outer lights of flashlights, are completely black, unless you have entered
-cheat mode (aka debug mode) where all tiles are visible to you (but still not
-to the professors).
+The tiles which are not visible due to either your night vision or the
+professors' flashlights, are completely black, unless you have entered cheat
+mode (aka debug mode) where all tiles are visible to you (but still not to the
+professors).
 
 When you start the game, you play on the first map from the list of maps. At
 any time you can shift to another map (since the game is turn-based, you can

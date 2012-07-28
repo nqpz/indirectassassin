@@ -103,6 +103,8 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
             NextGame -> render rootSurf graphics (snd nextGame) >> gamesLoop rootSurf graphics (gameListLists, nextGame)
             PrevMap -> render rootSurf graphics (snd $ snd prevMap) >> gamesLoop rootSurf graphics prevMap
             NextMap -> render rootSurf graphics (snd $ snd nextMap) >> gamesLoop rootSurf graphics nextMap
+            NewDirection direc -> let (agentPos, Agent _ items) = getGameAgent $ getGame currentGame
+                                  in gamesLoop rootSurf graphics (gameListLists, (currentGameList, currentGame { getGame = Map.insert agentPos (Agent direc items) $ getGame currentGame }))
             ToggleCheat -> let newGameExtra = GameExtra (getGame currentGame) (hasWon currentGame) (not $ isCheating currentGame) (getOrigGame currentGame)
                            in render rootSurf graphics newGameExtra >> gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGameExtra))
             Accept -> maybe (render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all) 
@@ -283,7 +285,8 @@ renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = outM [ 
 renderEndScreen :: SDL.Surface -> Graphics -> Bool -> IO ()
 renderEndScreen rootSurf graphics won = do
   fillSurf (if won then 0x0000ffff else 0xff0000ff) rootSurf
-  SDLttf.renderTextSolid (getFont graphics) (message won) $ SDL.Color 0 0 0
+  textSurf <- SDLttf.renderTextSolid (getFont graphics) (message won) $ SDL.Color 0 0 0
+  SDL.blitSurface textSurf Nothing rootSurf Nothing
   waitForNextFrame
   where message True  = "You have won!"
         message False = "You have lost!"
@@ -297,6 +300,13 @@ eventAction (SDL.KeyDown (Keysym k mods c))
       SDLK_RIGHT -> Just NextMap
       SDLK_x     -> Just ToggleCheat
       SDLK_r     -> Just Redraw
+      _          -> Nothing
+  | [KeyModShift, KeyModLeftShift, KeyModRightShift] `anyelem` mods = case k of
+      SDLK_UP    -> Just $ NewDirection Up
+      SDLK_DOWN  -> Just $ NewDirection Down
+      SDLK_LEFT  -> Just $ NewDirection Left
+      SDLK_RIGHT -> Just $ NewDirection Right
+      _          -> Nothing
   | k == SDLK_UP     = Just $ AgentAction $ Go Up
   | k == SDLK_LEFT   = Just $ AgentAction $ Go Left
   | k == SDLK_DOWN   = Just $ AgentAction $ Go Down

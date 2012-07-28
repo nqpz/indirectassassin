@@ -23,7 +23,7 @@ Data-Files:   data/floor.png data/wall.png data/embosst1.ttf
 
 Executable indirectassassin
     Main-is: Main.hs
-    other-modules: IndirectAssassin.BaseTypes
+    Other-Modules: IndirectAssassin.BaseTypes
                    IndirectAssassin.Misc
                    IndirectAssassin.Map
                    IndirectAssassin.Logic
@@ -31,3 +31,4 @@ Executable indirectassassin
                    IndirectAssassin.GameRunner
                    Paths_IndirectAssassin
     Build-Depends: base, MissingH, SDL, SDL-ttf, SDL-image, SDL-mixer, containers
+    ghc-Options:   
