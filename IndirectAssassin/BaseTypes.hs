@@ -93,3 +93,4 @@ data GameExtra = GameExtra { getGame :: Game
                            }
                deriving (Show, Eq)
 
+data Lighting = Darkness | Flashlight | NightVision

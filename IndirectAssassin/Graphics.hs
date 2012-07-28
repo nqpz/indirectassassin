@@ -40,6 +40,7 @@ data Graphics = Graphics { getFloor :: SDL.Surface
                          , getDiamond :: Word32 -> Word32 -> SurfPart
                          , getTomato :: Word32 -> Word32 -> SurfPart
                          , getIceShield :: Word32 -> Word32 -> SurfPart
+                         , getLightingSurf :: Lighting -> SDL.Surface
                          }
 
 getGraphics :: IO Graphics
@@ -67,6 +68,14 @@ getGraphics = do
   tomato <- prepAni 16 2 40 "data/item/tomato.png"
   iceShield <- prepAni 4 4 60 "data/item/ice_shield.png"
   
+  darknessSurf <- createSurf 64 64
+  flashlightSurf <- createSurf 64 64
+  nightVisionSurf <- createSurf 64 64
+  fillSurf 0x000000ff darknessSurf
+  fillSurf 0xfff22477 flashlightSurf
+  fillSurf 0x0000ff77 nightVisionSurf
+  
+  
   return $ Graphics fullFloor wallSurf font
     (dirExpand (walkcycle agentCycle, standStill agentCycle))
     (dirExpand (walkcycle professorCycle, standStill professorCycle))
@@ -74,6 +83,9 @@ getGraphics = do
     (dirExpand (walkcycle soldierZombieCycle, standStill soldierZombieCycle))
     (stillAni barrels) (stillAni buckets) (animation bat) (animation bee)
     (animation diamond) (animation tomato) (animation iceShield)
+    (\l -> case l of Darkness -> darknessSurf
+                     Flashlight -> flashlightSurf
+                     NightVision -> nightVisionSurf)
   where dirExpand (ani, still) direc = (ani direc, still direc)
         
 itemToImage :: Graphics -> Item -> Word32 -> Word32 -> SurfPart

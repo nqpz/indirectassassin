@@ -121,8 +121,8 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
                       let newGame = GameExtra game' hasWon' (isCheating currentGame) (getOrigGame currentGame)
                       case stepEffect of
                         NoChange -> return ()
-                        NewGame -> renderInterpolated rootSurf graphics newGame posChanges
-                        GameWon b -> renderInterpolated rootSurf graphics newGame posChanges >> renderEndScreen rootSurf graphics b
+                        NewGame -> renderInterpolated rootSurf graphics currentGame newGame posChanges
+                        GameWon b -> renderInterpolated rootSurf graphics currentGame newGame posChanges >> renderEndScreen rootSurf graphics b
                       gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGame))
             Redraw -> render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all
             ExitGame -> return ()
@@ -217,15 +217,33 @@ drawWalls surf graphics game mapOffset = outM [ blitWall pos | pos <- sortBy dep
             $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64 - 26) 64 88
 
 drawDarkness :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
-drawDarkness surf graphics game mapOffset = do
-  return ()
+drawDarkness surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0..11], y <- [0..8] ] >> return ()
+  where lighting = getLighting game
+        blitLighting :: Position -> IO Bool
+        blitLighting (x, y) = SDL.blitSurface (getLightingSurf graphics $ maybe Darkness id $ Map.lookup (x - (floor $ fromIntegral (fst mapOffset) / 64), y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting) Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+
+lightFrom :: Direction -> Position -> Int -> [Position]
+lightFrom _   _   0 = []
+lightFrom dir pos n = pos : lightFrom dir npos (n - 1)
+  where (_, npos) = nextDirPos dir Up pos
+
+getFlashlightTiles game = foldl' buildLight Map.empty $ filter (isProfessor . snd) $ Map.toList game
+  where buildLight lightMap (pos, Professor dir items) = foldl' build lightMap $ lightFrom dir pos $ profLightLength dir pos items
+        build lightMap pos = Map.insert pos Flashlight lightMap
+
+getNightVisionTiles game = buildLight $ getGameAgent game
+  where buildLight (pos, Agent dir items) = foldl' build Map.empty $ lightFrom dir pos 3
+        build lightMap pos = Map.insert pos NightVision lightMap
+
+getLighting :: Game -> Map.Map Position Lighting
+getLighting game = Map.union (getFlashlightTiles game) (getNightVisionTiles game)
 
 blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO Bool
 blitFloor rootSurf graphics mapOffset = do
   SDL.blitSurface floorS Nothing rootSurf
     $ Just $ SDL.Rect (fst mapOffset `posrem` 192 - 128) 0
     (SDL.surfaceGetWidth floorS) (SDL.surfaceGetHeight floorS)
-  where floorS =  getFloor graphics
+  where floorS = getFloor graphics
 
 render :: SDL.Surface -> Graphics -> GameExtra -> IO ()
 render rootSurf graphics gameExtra = do
@@ -245,8 +263,8 @@ render rootSurf graphics gameExtra = do
                 mapOffset = calcMapOffset game
                 calcMapOffset game = (64, 64) * ((6, 4) - (fst $ getGameAgent game))
 
-renderInterpolated :: SDL.Surface -> Graphics -> GameExtra -> Map.Map Position Position -> IO ()
-renderInterpolated rootSurf graphics gameExtra posChanges = outM [ renderOne i | i <- [0..7] ] >> return ()
+renderInterpolated :: SDL.Surface -> Graphics -> GameExtra -> GameExtra -> Map.Map Position Position -> IO ()
+renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = outM [ renderOne i | i <- [0..7] ] >> return ()
   where renderOne i = do
           blitFloor rootSurf graphics mapOffset
           drawItems rootSurf graphics game mapOffset
