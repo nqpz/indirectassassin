@@ -48,6 +48,7 @@ getGraphics = do
   fullFloor <- createSurf width height
   fillSurf 0x000000ff fullFloor
   drawFloor floorSurf fullFloor
+  SDL.freeSurface floorSurf
   wallSurf <- prepStill "data/wall.png"
   
   fontPath <- getDataFileName "data/embosst1.ttf"
@@ -74,6 +75,25 @@ getGraphics = do
     (stillAni barrels) (stillAni buckets) (animation bat) (animation bee)
     (animation diamond) (animation tomato) (animation iceShield)
   where dirExpand (ani, still) direc = (ani direc, still direc)
+        
+closeGraphics :: Graphics -> IO ()
+closeGraphics graphics = do
+  SDL.freeSurface $ getFloor graphics
+  SDL.freeSurface $ getWall graphics
+  SDLttf.closeFont $ getFont graphics
+  freeCycle getAgent
+  freeCycle getProfessor
+  freeCycle getSoldierNormal
+  freeCycle getSoldierZombie
+  freeAni getBarrels
+  freeAni getBuckets
+  freeAni getBat
+  freeAni getBee
+  freeAni getDiamond
+  freeAni getTomato
+  freeAni getIceShield
+  where freeCycle f = SDL.freeSurface $ fst $ snd $ f graphics Up
+        freeAni f   = SDL.freeSurface $ fst $ f graphics 0 1
 
 drawFloor :: SDL.Surface -> SDL.Surface -> IO [Bool]
 drawFloor floorSurf destSurf = outM [ blitFloor (x, y) | x <- [0..ceiling $ fromIntegral width / 96], y <- [0..ceiling $ fromIntegral height / 32] ]

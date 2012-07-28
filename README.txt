@@ -55,9 +55,9 @@ Haskell SDL bindings:
 
 Once this is done, run (from the root directory of the extracted tarball):
 
-    runhaskell Setup.hs configure
-    runhaskell Setup.hs build
-    runhaskell Setup.hs install
+    runhaskell Setup.lhs configure
+    runhaskell Setup.lhs build
+    runhaskell Setup.lhs install
 
 and the game should be installed.
 

@@ -22,18 +22,19 @@ nextDirPos Up rd (x, y) = (rd, p')
 nextDirPos d rd p = nextDirPos (pred d) (succ rd) p
 
 
-step :: Game -> AgentAction -> (StepEffect, Game)
+step :: Game -> AgentAction -> (StepEffect, Game, Map.Map Position Position)
 step game action = case action of
   UseItem item -> if isEmpty $ cellAt game nextPos 
-                  then (NoChange, game)
-                  else runAI $ Map.insert nextPos (Item item) game
+                  then (NoChange, game, Map.empty)
+                  else runAI (Map.insert nextPos (Item item) game) $ posChanges nextPos
     where nextPos = snd $ nextDirPos agentDir Up agentPos
   Go nextDir -> case cellAt game nextPos of
-    Empty -> runAI $ Map.insert nextPos (Agent nextDir agentItems) $ Map.delete agentPos game
-    Item item -> runAI $ Map.insert nextPos (Agent nextDir (item : agentItems)) $ Map.delete agentPos game
-    Wall -> (NoChange, game)
+    Empty -> runAI (Map.insert nextPos (Agent nextDir agentItems) $ Map.delete agentPos game) $ posChanges nextPos
+    Item item -> runAI (Map.insert nextPos (Agent nextDir (item : agentItems)) $ Map.delete agentPos game) $ posChanges nextPos
+    Wall -> (NoChange, game, Map.empty)
     where (_, nextPos) = nextDirPos nextDir Up agentPos
   where (agentPos, Agent agentDir agentItems) = head $ filter (isAgent . snd) $ Map.toList game
+        posChanges nextPos = (Map.insert nextPos agentPos Map.empty)
 
 profLightLength :: Direction -> (Int, Int) -> [Item] -> Int
 profLightLength dir (x, y) items = 3
@@ -47,17 +48,19 @@ profNextDirPos dir (x, y) items = (dir, (x, y))
 gameOverWon :: Game -> Maybe Bool
 gameOverWon game = Nothing
 
-runAI :: Game -> (StepEffect, Game)
-runAI game = whenNotOver game $ runAI' game
-  where runAI' game = whenNotOver newGame (NewGame, newGame)
-        newGame :: Game
-        newGame = foldl' buildNew game $ Map.toList game
-        buildNew game (p, Professor dir items) = case cellAt game nextPos of
-          Empty -> Map.insert nextPos (Professor nextDir items) $ Map.delete p game
-          Item item -> Map.insert nextPos (Professor nextDir (item : items)) $ Map.delete p game
-          Wall -> game
-          Professor _ _ -> game
+runAI :: Game -> Map.Map Position Position -> (StepEffect, Game, Map.Map Position Position)
+runAI game posChanges = whenNotOver game $ runAI' game
+  where runAI' game = whenNotOver (fst newGame) (NewGame, fst newGame, snd newGame)
+        newGame :: (Game, Map.Map Position Position)
+        newGame = foldl' buildNew (game, posChanges) $ Map.toList game
+        buildNew state@(game, posChanges) (p, Professor dir items) = case cellAt game nextPos of
+          Empty -> (Map.insert nextPos (Professor nextDir items) $ Map.delete p game,
+                    Map.insert nextPos p posChanges)
+          Item item -> (Map.insert nextPos (Professor nextDir (item : items)) $ Map.delete p game,
+                        Map.insert nextPos p posChanges)
+          Wall -> state
+          Professor _ _ -> state
           where (nextDir, nextPos) = profNextDirPos dir p items
-        buildNew game (_, _) = game
-        whenNotOver game f = maybe f (\b -> (GameWon b, game)) $ gameOverWon game
+        buildNew state _ = state
+        whenNotOver game f = maybe f (\b -> (GameWon b, game, posChanges)) $ gameOverWon game
 
