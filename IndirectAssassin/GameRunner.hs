@@ -169,7 +169,7 @@ drawProfessors surf graphics game mapOffset posChanges i = outM [ blitProf dir p
           let sprite = profSprite graphics dir pos items
           let ((profSurf, profRect), offset) = maybe (snd sprite, (0, 0))
                                                  (\op -> (((fst sprite) (fn `rem` fps) fps),
-                                                          ((i + 1) * 8, (i + 1) * 8) * calcOffset dir))
+                                                          (-((7 - i) + 1) * 8, -((7 - i) + 1) * 8) * calcOffset dir))
                                                  (Map.lookup pos posChanges)
           SDL.blitSurface profSurf (Just profRect) surf
             $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) (snd mapOffset + y * 64 + snd offset) 64 64
@@ -219,7 +219,19 @@ drawDarkness :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
 drawDarkness surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0..11], y <- [0..8] ] >> return ()
   where lighting = getLighting game
         blitLighting :: Position -> IO Bool
-        blitLighting (x, y) = SDL.blitSurface (getLightingSurf graphics $ maybe Darkness id $ Map.lookup (x - (floor $ fromIntegral (fst mapOffset) / 64), y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting) Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+        blitLighting (x, y) = SDL.blitSurface (getLightingSurf graphics $ maybe Darkness id $ Map.lookup 
+                                               (x - (floor $ fromIntegral (fst mapOffset) / 64), 
+                                                y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting) 
+                              Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+
+drawLight :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
+drawLight surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0..11], y <- [0..8] ] >> return ()
+  where lighting = getLighting game
+        blitLighting :: Position -> IO Bool
+        blitLighting (x, y) = maybe (return True) (\l -> SDL.blitSurface (getLightingSurf graphics l)
+                                                       Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64) 
+                              $ Map.lookup (x - (floor $ fromIntegral (fst mapOffset) / 64), 
+                                            y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting
 
 blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO Bool
 blitFloor rootSurf graphics mapOffset = do
@@ -239,7 +251,9 @@ render rootSurf graphics gameExtra = do
           drawProfessorsStill rootSurf graphics game mapOffset
           drawAgentStill rootSurf graphics game mapOffset
           drawWalls rootSurf graphics game mapOffset
-          if cheat then return () else drawDarkness rootSurf graphics game mapOffset
+          if cheat 
+            then drawLight rootSurf graphics game mapOffset 
+            else drawDarkness rootSurf graphics game mapOffset
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
@@ -263,7 +277,9 @@ renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
           drawProfessors rootSurf graphics game mapOffset posChanges i
           drawAgent rootSurf graphics game mapOffset posChanges i
           drawWalls rootSurf graphics game mapOffset
-          if cheat then return () else drawDarkness rootSurf graphics game mapOffset
+          if cheat 
+            then drawLight rootSurf graphics (getGame oldGameExtra) mapOffset 
+            else drawDarkness rootSurf graphics (getGame oldGameExtra) mapOffset
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
@@ -274,7 +290,7 @@ renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
 
 renderEndScreen :: SDL.Surface -> Graphics -> Bool -> IO ()
 renderEndScreen rootSurf graphics won = do
-  fillSurf (if won then 0x0000ffff else 0xff0000ff) rootSurf
+  fillSurf (if won then 0x000000ff else 0x00ff0000) rootSurf
   textSurf <- SDLttf.renderTextSolid (getFont graphics) (message won) $ SDL.Color 0 0 0
   SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 20 0 0
   SDL.flip rootSurf
@@ -303,6 +319,14 @@ eventAction (SDL.KeyDown (Keysym k mods c))
   | k == SDLK_RIGHT  = Just $ AgentAction $ Go Right
   | k == SDLK_ESCAPE = Just ExitGame
   | k == SDLK_RETURN || k == SDLK_KP_ENTER = Just Accept
-  | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toUpper c
+  | k == SDLK_a = ui Barrels
+  | k == SDLK_u = ui Buckets
+  | k == SDLK_e = ui YellowBat
+  | k == SDLK_r = ui GreenBee
+  | k == SDLK_i = ui Diamond
+  | k == SDLK_o = ui Tomato
+  | k == SDLK_c = ui IceShield
+  | otherwise = Nothing
+  where ui = Just . AgentAction . UseItem
 eventAction SDL.Quit = Just ExitGame
 eventAction _ = Nothing

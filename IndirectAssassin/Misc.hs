@@ -16,6 +16,9 @@ onPair f g (a, b) = (f a, g b)
 anyelem :: Eq a => [a] -> [a] -> Bool
 anyelem xs ys = (\y -> y `elem` xs) `any` ys
 
+anytrue :: [a -> Bool] -> a -> Bool
+anytrue fs x = (\f -> f x) `any` fs
+
 outM :: Monad m => [m a] -> m [a]
 outM xs = out xs []
   where out [] ys = return ys

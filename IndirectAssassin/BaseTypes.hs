@@ -57,9 +57,13 @@ data Item = Barrels   -- A
           | Diamond   -- I
           | Tomato    -- O
           | IceShield -- C
-          | TurnAtWall Direction
+          | TurnAtWall { getTurnDirection :: Direction
+                       }
           deriving (Show, Eq)
 
+isTurnDirection :: Item -> Bool
+isTurnDirection (TurnAtWall _) = True
+isTurnDirection _ = False
 
 data Cell = Wall
           | Empty

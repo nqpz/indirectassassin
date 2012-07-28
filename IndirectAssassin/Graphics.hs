@@ -53,7 +53,7 @@ getGraphics = do
   wallSurf <- prepStill "data/wall.png"
   
   fontPath <- getDataFileName "data/embosst1.ttf"
-  font <- SDLttf.openFont fontPath 20
+  font <- SDLttf.openFont fontPath 30
   
   agentCycle <- prepWalkcycle 9 4 50 "data/character/agent.png"
   professorCycle <- prepWalkcycle 9 4 50 "data/character/professor.png"

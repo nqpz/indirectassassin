@@ -205,6 +205,7 @@ A small map might look like this:
 * Play current map in a next, different frame: Control+Up arrow key
 * Play current map in a previous, different frame: Control+Up arrow key
 * Drop item in front of you: [Item key]
+* Exit game: ESCAPE
 
 
 Liberated Pixel Cup

@@ -4,7 +4,8 @@ module IndirectAssassin.Logic where
 import Prelude hiding (Right, Left)
 import Data.Word
 import qualified Data.Map as Map
-import Data.List (foldl')
+import Data.List (foldl', delete, find)
+import Control.Monad
 -- Local
 import IndirectAssassin.BaseTypes
 import IndirectAssassin.Misc
@@ -24,29 +25,39 @@ nextDirPos d rd p = nextDirPos (pred d) (succ rd) p
 
 step :: Game -> AgentAction -> (StepEffect, Game, Map.Map Position Position)
 step game action = case action of
-  UseItem item -> if isEmpty $ cellAt game nextPos 
+  UseItem item -> if (not $ item `elem` agentItems)
+                     || (not $ isEmpty $ cellAt game nextPos)
                   then (NoChange, game, Map.empty)
-                  else runAI (Map.insert nextPos (Item item) game) $ posChanges nextPos
+                  else runAI (Map.insert nextPos (Item item) (Map.insert agentPos (Agent agentDir $ delete item agentItems) game)) $ posChanges nextPos
     where nextPos = snd $ nextDirPos agentDir Up agentPos
   Go nextDir -> case cellAt game nextPos of
     Empty -> runAI (Map.insert nextPos (Agent nextDir agentItems) $ Map.delete agentPos game) $ posChanges nextPos
     Item item -> runAI (Map.insert nextPos (Agent nextDir (item : agentItems)) $ Map.delete agentPos game) $ posChanges nextPos
     Wall -> (NoChange, game, Map.empty)
+    Professor _ _ -> (GameWon False, game, Map.empty)
     where (_, nextPos) = nextDirPos nextDir Up agentPos
   where (agentPos, Agent agentDir agentItems) = head $ filter (isAgent . snd) $ Map.toList game
         posChanges nextPos = (Map.insert nextPos agentPos Map.empty)
 
-profLightLength :: Direction -> (Int, Int) -> [Item] -> Int
+profLightLength :: Direction -> Position -> [Item] -> Int
 profLightLength dir (x, y) items = 3
 
-profSprite :: Graphics -> Direction -> (Int, Int) -> [Item] -> (Word32 -> Word32 -> SurfPart, SurfPart)
+profSprite :: Graphics -> Direction -> Position -> [Item] -> (Word32 -> Word32 -> SurfPart, SurfPart)
 profSprite g dir (x, y) items = getProfessor g dir
 
-profNextDirPos :: Direction -> (Int, Int) -> [Item] -> (Direction, (Int, Int))
-profNextDirPos dir (x, y) items = (dir, (x, y))
+profNextDirPos :: Game -> Direction -> Position -> [Item] -> Maybe (Direction, Position)
+profNextDirPos game dir pos items | not $ [isEmpty, isItem] `anytrue` cellAt game nextPos = next'
+                                  | otherwise = Just (nextDir, nextPos)
+  where (nextDir, nextPos) = nextDirPos dir Up pos
+        next' = liftM (\t -> nextDirPos dir t pos) turnAt
+        turnAt :: Maybe Direction
+        turnAt = liftM getTurnDirection $ find isTurnDirection items
+
+profIsDead :: Direction -> Position -> [Item] -> Bool
+profIsDead dir (x, y) items = Tomato `elem` items
 
 gameOverWon :: Game -> Maybe Bool
-gameOverWon game = if null $ filter (isAgent . snd) $ Map.toList game
+gameOverWon game = if null $ filter (\(pos, c) -> isProfessor c && (not $ profIsDead (getDirection c) pos (getItems c))) $ Map.toList game
                    then Just True
                    else if gameLost then Just False else Nothing
   where gameLost :: Bool
@@ -57,14 +68,19 @@ runAI game posChanges = whenNotOver game $ runAI' game
   where runAI' game = whenNotOver (fst newGame) (NewGame, fst newGame, snd newGame)
         newGame :: (Game, Map.Map Position Position)
         newGame = foldl' buildNew (game, posChanges) $ Map.toList game
-        buildNew state@(game, posChanges) (p, Professor dir items) = case cellAt game nextPos of
-          Empty -> (Map.insert nextPos (Professor nextDir items) $ Map.delete p game,
-                    Map.insert nextPos p posChanges)
-          Item item -> (Map.insert nextPos (Professor nextDir (item : items)) $ Map.delete p game,
-                        Map.insert nextPos p posChanges)
-          Wall -> state
-          Professor _ _ -> state
-          where (nextDir, nextPos) = profNextDirPos dir p items
+        buildNew state@(game, posChanges) (p, Professor dir items)
+          | isDead = (Map.delete p game, posChanges)
+          | ndp == Nothing = state
+          | otherwise = actOnNext ndp
+          where isDead = profIsDead dir p items
+                ndp = (profNextDirPos game dir p items)
+                actOnNext (Just (nextDir, nextPos)) = case cellAt game nextPos of
+                  Empty -> fill items
+                  Item item -> fill $ item : items
+                  Wall -> state
+                  Professor _ _ -> state
+                  where fill items = (Map.insert nextPos (Professor nextDir items) $ Map.delete p game,
+                                      Map.insert nextPos p posChanges)
         buildNew state _ = state
         whenNotOver game f = maybe f (\b -> (GameWon b, game, posChanges)) $ gameOverWon game
 
