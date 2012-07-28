@@ -126,7 +126,6 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
                         NewGame -> renderInterpolated rootSurf graphics currentGame newGame posChanges
                         GameWon b -> renderInterpolated rootSurf graphics currentGame newGame posChanges >> renderEndScreen rootSurf graphics b
                       gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGame))
-            Redraw -> render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all
             ExitGame -> return ()
           where  
             prevGame = prevElement currentGameList currentGame
@@ -183,8 +182,6 @@ drawProfessorsStill surf graphics game mapOffset = outM [ blitProf dir pos items
           SDL.blitSurface profSurf (Just profRect) surf
             $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
 
-getGameAgent game = head $ filter (isAgent . snd) $ Map.toList game
-
 drawAgent :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> Map.Map Position Position -> Int -> IO Bool
 drawAgent surf graphics game mapOffset posChanges i = do
   let (p@(x, y), Agent dir items) = getGameAgent game
@@ -223,22 +220,6 @@ drawDarkness surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0
   where lighting = getLighting game
         blitLighting :: Position -> IO Bool
         blitLighting (x, y) = SDL.blitSurface (getLightingSurf graphics $ maybe Darkness id $ Map.lookup (x - (floor $ fromIntegral (fst mapOffset) / 64), y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting) Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
-
-lightFrom :: Direction -> Position -> Int -> [Position]
-lightFrom _   _   0 = []
-lightFrom dir pos n = pos : lightFrom dir npos (n - 1)
-  where (_, npos) = nextDirPos dir Up pos
-
-getFlashlightTiles game = foldl' buildLight Map.empty $ filter (isProfessor . snd) $ Map.toList game
-  where buildLight lightMap (pos, Professor dir items) = foldl' build lightMap $ lightFrom dir pos $ profLightLength dir pos items
-        build lightMap pos = Map.insert pos Flashlight lightMap
-
-getNightVisionTiles game = buildLight $ getGameAgent game
-  where buildLight (pos, Agent dir items) = foldl' build Map.empty $ lightFrom dir pos 3
-        build lightMap pos = Map.insert pos NightVision lightMap
-
-getLighting :: Game -> Map.Map Position Lighting
-getLighting game = Map.union (getFlashlightTiles game) (getNightVisionTiles game)
 
 blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO Bool
 blitFloor rootSurf graphics mapOffset = do
@@ -299,7 +280,6 @@ eventAction (SDL.KeyDown (Keysym k mods c))
       SDLK_LEFT  -> Just PrevMap
       SDLK_RIGHT -> Just NextMap
       SDLK_x     -> Just ToggleCheat
-      SDLK_r     -> Just Redraw
       _          -> Nothing
   | [KeyModShift, KeyModLeftShift, KeyModRightShift] `anyelem` mods = case k of
       SDLK_UP    -> Just $ NewDirection Up
@@ -313,6 +293,6 @@ eventAction (SDL.KeyDown (Keysym k mods c))
   | k == SDLK_RIGHT  = Just $ AgentAction $ Go Right
   | k == SDLK_ESCAPE = Just ExitGame
   | k == SDLK_RETURN || k == SDLK_KP_ENTER = Just Accept
-  | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toLower c
+  | otherwise = maybe Nothing (Just . AgentAction . UseItem) $ charToItem $ toUpper c
 eventAction SDL.Quit = Just ExitGame
 eventAction _ = Nothing

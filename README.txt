@@ -196,17 +196,14 @@ A small map might look like this:
 
 #### Keys to remember
 
-* Move left if possible: Left arrow key: 
-* Move right if possible: Right arrow key
-* Move up if possible: Up arrow key
-* Move down if possible: Down arrow key
+* Move <direction> if possible: <direction> arrow key
+* Rotate to look in <direction>: Shift+<direction> arrow key
 * Toggle cheat mode: Control+X
 * Accept message: Enter
 * Go to next map: Control+Right arrow key
 * Go to previous map: Control+Left arrow key
 * Play current map in a next, different frame: Control+Up arrow key
 * Play current map in a previous, different frame: Control+Up arrow key
-* Redraw screen: Ctrl+R
 * Drop item in front of you: [Item key]
 
 

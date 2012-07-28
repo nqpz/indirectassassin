@@ -80,7 +80,7 @@ data AgentAction = Go Direction | UseItem Item
 
 data UserAction = NoAction | PrevGame | NextGame | PrevMap | NextMap 
                 | ToggleCheat | Accept | AgentAction AgentAction 
-                | NewDirection Direction | Redraw | ExitGame
+                | NewDirection Direction | ExitGame
                 deriving (Show, Eq)
 
 data StepEffect = NewGame | NoChange | GameWon Bool

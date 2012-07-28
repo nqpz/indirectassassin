@@ -72,3 +72,5 @@ loadGameMap :: String -> IO Game
 loadGameMap filePath = do
   contents <- readFile filePath
   return $ parseGameMap contents
+
+

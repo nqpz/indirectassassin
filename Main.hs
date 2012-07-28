@@ -10,10 +10,9 @@ import IndirectAssassin.GameRunner
 main :: IO ()
 main = do
   args <- getArgs
-  games <- outM $ map loadGameMap args
   if ["--help", "-h"] `anyelem` args
     then printHelp
-    else runGames games
+    else runGames =<< (outM $ map loadGameMap args)
 
 printHelp :: IO ()
 printHelp = do

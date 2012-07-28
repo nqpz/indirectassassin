@@ -46,7 +46,11 @@ profNextDirPos :: Direction -> (Int, Int) -> [Item] -> (Direction, (Int, Int))
 profNextDirPos dir (x, y) items = (dir, (x, y))
 
 gameOverWon :: Game -> Maybe Bool
-gameOverWon game = Nothing
+gameOverWon game = if null $ filter (isAgent . snd) $ Map.toList game
+                   then Just True
+                   else if gameLost then Just False else Nothing
+  where gameLost :: Bool
+        gameLost = maybe False (const True) $ Map.lookup (fst $ getGameAgent game) (getLighting game)
 
 runAI :: Game -> Map.Map Position Position -> (StepEffect, Game, Map.Map Position Position)
 runAI game posChanges = whenNotOver game $ runAI' game
@@ -64,3 +68,21 @@ runAI game posChanges = whenNotOver game $ runAI' game
         buildNew state _ = state
         whenNotOver game f = maybe f (\b -> (GameWon b, game, posChanges)) $ gameOverWon game
 
+
+getGameAgent game = head $ filter (isAgent . snd) $ Map.toList game
+
+lightFrom :: Direction -> Position -> Int -> [Position]
+lightFrom _   _   (-1) = []
+lightFrom dir pos n    = pos : lightFrom dir npos (n - 1)
+  where (_, npos) = nextDirPos dir Up pos
+
+getFlashlightTiles game = foldl' buildLight Map.empty $ filter (isProfessor . snd) $ Map.toList game
+  where buildLight lightMap (pos, Professor dir items) = foldl' build lightMap $ lightFrom dir pos $ profLightLength dir pos items
+        build lightMap pos = Map.insert pos Flashlight lightMap
+
+getNightVisionTiles game = buildLight $ getGameAgent game
+  where buildLight (pos, Agent dir items) = foldl' build Map.empty $ lightFrom dir pos 3
+        build lightMap pos = Map.insert pos NightVision lightMap
+
+getLighting :: Game -> Map.Map Position Lighting
+getLighting game = Map.union (getFlashlightTiles game) (getNightVisionTiles game)
