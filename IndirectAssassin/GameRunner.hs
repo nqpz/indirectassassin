@@ -102,7 +102,7 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
             PrevGame -> render rootSurf graphics (snd prevGame) >> gamesLoop rootSurf graphics (gameListLists, prevGame)
             NextGame -> render rootSurf graphics (snd nextGame) >> gamesLoop rootSurf graphics (gameListLists, nextGame)
             PrevMap -> render rootSurf graphics (snd $ snd prevMap) >> gamesLoop rootSurf graphics prevMap
-            NextMap -> render rootSurf graphics (snd $ snd prevMap) >> gamesLoop rootSurf graphics nextMap
+            NextMap -> render rootSurf graphics (snd $ snd nextMap) >> gamesLoop rootSurf graphics nextMap
             ToggleCheat -> let newGameExtra = GameExtra (getGame currentGame) (hasWon currentGame) (not $ isCheating currentGame) (getOrigGame currentGame)
                            in render rootSurf graphics newGameExtra >> gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGameExtra))
             Accept -> maybe (render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all) 
@@ -269,7 +269,7 @@ renderEndScreen rootSurf graphics won = do
 
 eventAction :: SDL.Event -> Maybe UserAction
 eventAction (SDL.KeyDown (Keysym k mods c))
-  | KeyModCtrl `elem` mods = case k of 
+  | [KeyModCtrl, KeyModLeftCtrl, KeyModRightCtrl] `anyelem` mods = case k of 
       SDLK_UP    -> Just PrevGame
       SDLK_DOWN  -> Just NextGame
       SDLK_LEFT  -> Just PrevMap

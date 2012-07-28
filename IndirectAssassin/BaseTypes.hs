@@ -47,7 +47,7 @@ prevElement :: CenterList a -> a -> (CenterList a, a)
 prevElement ((prev : before), after) current = ((before, current : after), prev)
 
 createInfCenterList :: [a] -> (CenterList a, a)
-createInfCenterList xs'@(x : xs) = ((cycle $ reverse xs', cycle xs), x)
+createInfCenterList xs'@(x : xs) = ((cycle $ reverse xs', cycle (xs ++ [x])), x)
 
 
 data Item = Barrels   -- A
