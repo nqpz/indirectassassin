@@ -148,18 +148,8 @@ calculateDelay = do
   let delay = max 0 $ 1000 * fromIntegral fn / fromIntegral fps - fromIntegral msecs
   return $ delay * 1000
 
-itemToImage :: Graphics -> Item -> Word32 -> Word32 -> SurfPart
-itemToImage g i = case i of
-  Barrels -> getBarrels g
-  Buckets -> getBuckets g
-  YellowBat -> getBat g
-  GreenBee -> getBee g
-  Diamond -> getDiamond g
-  Tomato -> getTomato g
-  IceShield -> getIceShield g
-
-drawItems :: SDL.Surface -> Graphics -> Game -> IO [Bool]
-drawItems surf graphics game = outM [ blitItem pos item | (pos, Item item) <- filter (isItem . snd) $ Map.toList game ]
+drawItems :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool]
+drawItems surf graphics game mapOffset = outM [ blitItem pos item | (pos, Item item) <- filter (isItem . snd) $ Map.toList game ]
   where blitItem :: Position -> Item -> IO Bool
         blitItem (x, y) item = do
           fn <- getFrameNumber
@@ -167,10 +157,10 @@ drawItems surf graphics game = outM [ blitItem pos item | (pos, Item item) <- fi
           let (itemSurf, itemRect) = itemToImage graphics item (fn `rem` fps) fps
           let offset = (floor $ fromIntegral (64 - SDL.rectW itemRect) / 2, floor $ fromIntegral (64 - SDL.rectH itemRect) / 2)
           SDL.blitSurface itemSurf (Just itemRect) surf
-            $ Just $ SDL.Rect (x * 64 + fst offset) (y * 64 + snd offset) (SDL.rectW itemRect) (SDL.rectH itemRect)
+            $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) (snd mapOffset + y * 64 + snd offset) (SDL.rectW itemRect) (SDL.rectH itemRect)
   
-drawProfessors :: SDL.Surface -> Graphics -> Game -> Map.Map Position Position -> Int -> IO [Bool]
-drawProfessors surf graphics game posChanges i = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
+drawProfessors :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> Map.Map Position Position -> Int -> IO [Bool]
+drawProfessors surf graphics game mapOffset posChanges i = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
   where blitProf :: Direction -> Position -> [Item] -> IO Bool 
         blitProf dir pos@(x, y) items = do
           fn <- getFrameNumber
@@ -181,19 +171,21 @@ drawProfessors surf graphics game posChanges i = outM [ blitProf dir pos items |
                                                           ((i + 1) * 8, (i + 1) * 8) * calcOffset dir))
                                                  (Map.lookup pos posChanges)
           SDL.blitSurface profSurf (Just profRect) surf
-            $ Just $ SDL.Rect (x * 64 + fst offset) (y * 64 + snd offset) 64 64
+            $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) (snd mapOffset + y * 64 + snd offset) 64 64
         
-drawProfessorsStill :: SDL.Surface -> Graphics -> Game -> IO [Bool]
-drawProfessorsStill surf graphics game = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
+drawProfessorsStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool]
+drawProfessorsStill surf graphics game mapOffset = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
   where blitProf :: Direction -> Position -> [Item] -> IO Bool 
         blitProf dir pos@(x, y) items = do
           let (profSurf, profRect) = snd $ profSprite graphics dir pos items
           SDL.blitSurface profSurf (Just profRect) surf
-            $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+            $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
 
-drawAgent :: SDL.Surface -> Graphics -> Game -> Map.Map Position Position -> Int -> IO Bool
-drawAgent surf graphics game posChanges i = do
-  let (p@(x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
+getGameAgent game = head $ filter (isAgent . snd) $ Map.toList game
+
+drawAgent :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> Map.Map Position Position -> Int -> IO Bool
+drawAgent surf graphics game mapOffset posChanges i = do
+  let (p@(x, y), Agent dir items) = getGameAgent game
   fn <- getFrameNumber
   fps <- getFPS
   let ((agentSurf, agentRect), offset) = maybe (snd $ (getAgent graphics) dir, (0, 0))
@@ -201,7 +193,7 @@ drawAgent surf graphics game posChanges i = do
                                                   (((7 - i) + 1) * 8, ((7 - i) + 1) * 8) * calcOffset dir))
                                          (Map.lookup p posChanges)
   SDL.blitSurface agentSurf (Just agentRect) surf
-    $ Just $ SDL.Rect (x * 64 - fst offset) (y * 64 - snd offset) 64 64
+    $ Just $ SDL.Rect (fst mapOffset + x * 64 - fst offset) (snd mapOffset + y * 64 - snd offset) 64 64
     
 calcOffset :: Direction -> (Int, Int)
 calcOffset Up    = (0, -1)
@@ -209,24 +201,31 @@ calcOffset Left  = (-1, 0)
 calcOffset Down  = (0, 1)
 calcOffset Right = (1, 0)
             
-drawAgentStill :: SDL.Surface -> Graphics -> Game -> IO Bool
-drawAgentStill surf graphics game = do
+drawAgentStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO Bool
+drawAgentStill surf graphics game mapOffset = do
   let ((x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
   let (agentSurf, agentRect) = snd $ (getAgent graphics) dir
   SDL.blitSurface agentSurf (Just agentRect) surf
-    $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+    $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
 
-drawWalls :: SDL.Surface -> Graphics -> Game -> IO [Bool]
-drawWalls surf graphics game = outM [ blitWall pos | pos <- sortBy depth $ map fst $ filter (isWall . snd) $ Map.toList game ]
+drawWalls :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool]
+drawWalls surf graphics game mapOffset = outM [ blitWall pos | pos <- sortBy depth $ map fst $ filter (isWall . snd) $ Map.toList game ]
   where depth (_, y0) (_, y1) = compare y0 y1
         blitWall :: Position -> IO Bool
         blitWall (x, y) = do
           SDL.blitSurface (getWall graphics) Nothing surf
-            $ Just $ SDL.Rect (x * 64) (y * 64 - 26) 64 88
+            $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64 - 26) 64 88
 
-drawDarkness :: SDL.Surface -> Graphics -> Game -> IO ()
-drawDarkness surf graphics game = do
+drawDarkness :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
+drawDarkness surf graphics game mapOffset = do
   return ()
+
+blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO Bool
+blitFloor rootSurf graphics mapOffset = do
+  SDL.blitSurface floorS Nothing rootSurf
+    $ Just $ SDL.Rect (fst mapOffset `posrem` 192 - 128) 0
+    (SDL.surfaceGetWidth floorS) (SDL.surfaceGetHeight floorS)
+  where floorS =  getFloor graphics
 
 render :: SDL.Surface -> Graphics -> GameExtra -> IO ()
 render rootSurf graphics gameExtra = do
@@ -234,29 +233,33 @@ render rootSurf graphics gameExtra = do
     Nothing -> render'
     Just b -> renderEndScreen rootSurf graphics b
   where render' = do
-          SDL.blitSurface (getFloor graphics) Nothing rootSurf Nothing
-          drawItems rootSurf graphics game
-          drawProfessorsStill rootSurf graphics game
-          drawAgentStill rootSurf graphics game
-          drawWalls rootSurf graphics game
-          if cheat then return () else drawDarkness rootSurf graphics game
+          blitFloor rootSurf graphics mapOffset
+          drawItems rootSurf graphics game mapOffset
+          drawProfessorsStill rootSurf graphics game mapOffset
+          drawAgentStill rootSurf graphics game mapOffset
+          drawWalls rootSurf graphics game mapOffset
+          if cheat then return () else drawDarkness rootSurf graphics game mapOffset
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
-
+                mapOffset = calcMapOffset game
+                calcMapOffset game = (64, 64) * ((6, 4) - (fst $ getGameAgent game))
 
 renderInterpolated :: SDL.Surface -> Graphics -> GameExtra -> Map.Map Position Position -> IO ()
 renderInterpolated rootSurf graphics gameExtra posChanges = outM [ renderOne i | i <- [0..7] ] >> return ()
   where renderOne i = do
-          SDL.blitSurface (getFloor graphics) Nothing rootSurf Nothing
-          drawItems rootSurf graphics game
-          drawProfessors rootSurf graphics game posChanges i
-          drawAgent rootSurf graphics game posChanges i
-          drawWalls rootSurf graphics game
-          if cheat then return () else drawDarkness rootSurf graphics game
+          blitFloor rootSurf graphics mapOffset
+          drawItems rootSurf graphics game mapOffset
+          drawProfessors rootSurf graphics game mapOffset posChanges i
+          drawAgent rootSurf graphics game mapOffset posChanges i
+          drawWalls rootSurf graphics game mapOffset
+          if cheat then return () else drawDarkness rootSurf graphics game mapOffset
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
+                mapOffset = calcMapOffset game
+                agentPos = fst $ getGameAgent game
+                calcMapOffset game = (64, 64) * ((6, 4) - maybe agentPos id (Map.lookup agentPos posChanges))
 
 
 renderEndScreen :: SDL.Surface -> Graphics -> Bool -> IO ()

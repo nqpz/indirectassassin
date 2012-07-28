@@ -23,7 +23,7 @@ outM xs = out xs []
 
 posrem :: Int -> Int -> Int
 posrem n r = pos $ n `rem` r
-  where pos n | n < 0 = 4 + n
+  where pos n | n < 0 = r + n
               | otherwise = n
 
 instance (Num t, Num t1) => Num (t, t1) where

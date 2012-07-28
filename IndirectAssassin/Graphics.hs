@@ -45,7 +45,7 @@ data Graphics = Graphics { getFloor :: SDL.Surface
 getGraphics :: IO Graphics
 getGraphics = do
   floorSurf <- prepStill "data/floor.png"
-  fullFloor <- createSurf width height
+  fullFloor <- createSurf (width + 192) height
   fillSurf 0x000000ff fullFloor
   drawFloor floorSurf fullFloor
   SDL.freeSurface floorSurf
@@ -76,6 +76,16 @@ getGraphics = do
     (animation diamond) (animation tomato) (animation iceShield)
   where dirExpand (ani, still) direc = (ani direc, still direc)
         
+itemToImage :: Graphics -> Item -> Word32 -> Word32 -> SurfPart
+itemToImage g i = (\f -> f g) $ case i of
+  Barrels   -> getBarrels
+  Buckets   -> getBuckets
+  YellowBat -> getBat
+  GreenBee  -> getBee
+  Diamond   -> getDiamond
+  Tomato    -> getTomato
+  IceShield -> getIceShield
+        
 closeGraphics :: Graphics -> IO ()
 closeGraphics graphics = do
   SDL.freeSurface $ getFloor graphics
@@ -96,7 +106,7 @@ closeGraphics graphics = do
         freeAni f   = SDL.freeSurface $ fst $ f graphics 0 1
 
 drawFloor :: SDL.Surface -> SDL.Surface -> IO [Bool]
-drawFloor floorSurf destSurf = outM [ blitFloor (x, y) | x <- [0..ceiling $ fromIntegral width / 96], y <- [0..ceiling $ fromIntegral height / 32] ]
+drawFloor floorSurf destSurf = outM [ blitFloor (x, y) | x <- [0..ceiling $ fromIntegral width / 96 + fromIntegral 2], y <- [0..ceiling $ fromIntegral height / 32] ]
   where blitFloor :: Position -> IO Bool
         blitFloor (x, y) = do
           SDL.blitSurface floorSurf Nothing destSurf
