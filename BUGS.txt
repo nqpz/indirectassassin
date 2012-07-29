@@ -7,7 +7,8 @@ Sound
 I couldn't get Haskell's SDL-mixer working. I tried on two different machines,
 and both gave me a floating point exception when trying to play an .ogg Vorbis
 file, though loading it seemed to be no problem. It is possible that it's my
-system which has incompatible libraries.
+system which has incompatible libraries. Once I get around to updating my
+entire system, I'll report it if I still experience it.
 
 
 Movement

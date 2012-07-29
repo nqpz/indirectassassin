@@ -100,7 +100,7 @@ data Cell = Wall
 
 type Game = Map.Map Position Cell
 
-data AgentAction = Go Direction | UseItem Item
+data AgentAction = Go Direction | UseItem Item | PassTurn
                  deriving (Show, Eq)
 
 data UserAction = NoAction | PrevGame | NextGame | PrevMap | NextMap 

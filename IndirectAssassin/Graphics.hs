@@ -143,7 +143,7 @@ closeGraphics graphics = do
   freeAni getDiamond
   freeAni getTomato
   freeAni getIceShield
-  SDLmix.freeMusic $ getBackgroundMusic graphics
+  -- SDLmix.freeMusic $ getBackgroundMusic graphics
   where freeCycle f = SDL.freeSurface $ fst $ snd $ f graphics Up
         freeAni f   = SDL.freeSurface $ fst $ f graphics 0 1
 

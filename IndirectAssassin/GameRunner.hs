@@ -350,6 +350,7 @@ eventAction (SDL.KeyDown (Keysym k mods c))
   | k == SDLK_LEFT   = Just $ AgentAction $ Go Left
   | k == SDLK_DOWN   = Just $ AgentAction $ Go Down
   | k == SDLK_RIGHT  = Just $ AgentAction $ Go Right
+  | k == SDLK_p      = Just $ AgentAction PassTurn
   | k == SDLK_ESCAPE = Just ExitGame
   | k == SDLK_RETURN || k == SDLK_KP_ENTER = Just Accept
   | k == SDLK_a = ui Barrels

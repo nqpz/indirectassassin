@@ -56,6 +56,7 @@ step game action = case action of
     Wall -> (NoChange, game, Map.empty)
     Professor _ _ -> (GameWon False, game, Map.empty)
     where (_, nextPos) = nextDirPos nextDir Up agentPos
+  PassTurn -> runAI game Map.empty
   where (agentPos, Agent agentDir agentItems) = head $ filter (isAgent . snd) $ Map.toList game
         posChanges nextPos = (Map.insert nextPos agentPos Map.empty)
 

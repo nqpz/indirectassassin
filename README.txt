@@ -61,7 +61,7 @@ Platform from http://hackage.haskell.org/platform/ --- once you have downloaded
 and installed those, you can use a newly installed program, "cabal", to
 download and install Haskell SDL bindings:
 
-    cabal install sdl sdl-image sdl-mixer sdl-ttf missingh
+    cabal install sdl sdl-image sdl-mixer sdl-ttf missingh containers
 
 Once this is done, run (from the root directory of the extracted tarball):
 
@@ -183,11 +183,11 @@ item keys.
 
 Some items are good for the professors, some are bad. None of them affect you.
 
-If a professor picks up a green bee, he dies instantly.
+If a professor enters a tile with a green bee, he dies instantly.
 
-If a professor picks up a toilet, he doesn't move for 5 turns.
+If a professor enters a tile with a toilet, he doesn't move for 5 turns.
 
-If a professor picks up a yellow bat, he becomes a zombie soldier for 4 turns.
+If a professor enters a tile with a yellow bat, he becomes a zombie soldier for 4 turns.
 
 If a professor is a zombie soldier, he will kill not only you, but also other
 professors (if he sees them).
@@ -225,6 +225,7 @@ A small map might look like this:
 * Play current map in a next, different frame: Control+Up arrow key
 * Play current map in a previous, different frame: Control+Up arrow key
 * Drop item in front of you: [Item key]
+* Pass turn: p
 * Exit game: ESCAPE
 
 
