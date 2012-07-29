@@ -37,11 +37,13 @@ import IndirectAssassin.BaseTypes
 import IndirectAssassin.Map
 
 
-(width, height) = (768, 576) -- hardcoded because I'm lazy (like the language, but different)
+-- hardcoded because I'm lazy (like the language, but different)
+(width, height) = (768, 576)
 
 
 createSurf :: Int -> Int -> IO SDL.Surface
-createSurf w h = SDL.createRGBSurface [] w h 32 0xff000000 0x00ff0000 0x0000ff00 0x000000ff
+createSurf w h = SDL.createRGBSurface [] w h 32
+                 0xff000000 0x00ff0000 0x0000ff00 0x000000ff
 
 fillSurf :: Word32 -> SDL.Surface -> IO Bool
 fillSurf color surf = SDL.fillRect surf Nothing $ SDL.Pixel color
@@ -61,8 +63,10 @@ getGraphics = do
   
   agentCycle <- prepWalkcycle 9 4 50 "data/character/agent.png"
   professorCycle <- prepWalkcycle 9 4 50 "data/character/professor.png"
-  soldierNormalCycle <- prepWalkcycle 9 4 50 "data/character/soldier_normal.png"
-  soldierZombieCycle <- prepWalkcycle 9 4 50 "data/character/soldier_zombie.png"
+  soldierNormalCycle <- prepWalkcycle 9 4 50 
+                        "data/character/soldier_normal.png"
+  soldierZombieCycle <- prepWalkcycle 9 4 50 
+                        "data/character/soldier_zombie.png"
   
   barrels <- prepStill "data/item/barrels.png"
   buckets <- prepStill "data/item/buckets.png"
@@ -128,8 +132,11 @@ closeGraphics graphics = do
   where freeCycle f = SDL.freeSurface $ fst $ snd $ f graphics Up
         freeAni f   = SDL.freeSurface $ fst $ f graphics 1
 
-drawFloor :: SDL.Surface -> SDL.Surface -> IO [Bool]
-drawFloor floorSurf destSurf = outM [ blitFloor (x, y) | x <- [0..ceiling $ fromIntegral width / 96 + fromIntegral 2], y <- [0..ceiling $ fromIntegral height / 32] ]
+drawFloor :: SDL.Surface -> SDL.Surface -> IO ()
+drawFloor floorSurf destSurf 
+  = toUnit [ blitFloor (x, y) |
+             x <- [0..ceiling $ fromIntegral width / 96 + fromIntegral 2],
+             y <- [0..ceiling $ fromIntegral height / 32] ]
   where blitFloor :: Position -> IO Bool
         blitFloor (x, y) = do
           SDL.blitSurface floorSurf Nothing destSurf
@@ -144,7 +151,8 @@ stillAni surf _ = (surf, SDL.Rect 0 0 0 0)
 
 type AnimationInfo = (SDL.Surface, Int, Int, Int, Int, Int, Int)
 animation :: AnimationInfo -> Word32 -> SurfPart
-animation (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) t = (surf, rect)
+animation (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) t 
+  = (surf, rect)
   where n = floor (fromIntegral t / fromIntegral frameDur) `rem` oneDir
         (x, y) = (n `rem` xTiles, floor $ fromIntegral n / fromIntegral xTiles)
         rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
@@ -154,16 +162,20 @@ prepAni xTiles yTiles frameDur path = do
   path' <- getDataFileName path
   surf <- SDLi.load path'
   let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
-  let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, floor $ fromIntegral h / fromIntegral yTiles)
+  let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, 
+                        floor $ fromIntegral h / fromIntegral yTiles)
   let oneDir = floor $ fromIntegral xTiles * fromIntegral yTiles
   return (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles)
 
 
 walkcycle :: AnimationInfo -> Direction -> Word32 -> SurfPart
-walkcycle (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) direc t = (surf, rect)
+walkcycle (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) direc t
+  = (surf, rect)
   where nOffset = oneDir * fromEnum direc
-        n = 1 + nOffset + floor (fromIntegral t / fromIntegral frameDur) `rem` (oneDir - 1)
-        (x, y) = (n `rem` (xTiles - 1), floor $ fromIntegral n / fromIntegral xTiles)
+        n = 1 + nOffset + floor (fromIntegral t
+                                 / fromIntegral frameDur) `rem` (oneDir - 1)
+        (x, y) = (n `rem` (xTiles - 1), 
+                  floor $ fromIntegral n / fromIntegral xTiles)
         rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
 
 prepWalkcycle :: Int -> Int -> Int -> String -> IO AnimationInfo
@@ -171,9 +183,11 @@ prepWalkcycle xTiles yTiles frameDur path = do
           path' <- getDataFileName path
           surf <- SDLi.load path'
           let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
-          let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, floor $ fromIntegral h / fromIntegral yTiles)
+          let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, 
+                                floor $ fromIntegral h / fromIntegral yTiles)
           let oneDir = floor $ fromIntegral xTiles * fromIntegral yTiles / 4
           return (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles)
 
 standStill :: AnimationInfo -> Direction -> SurfPart
-standStill (surf, _, _, _, _, _, _) direc = (surf, SDL.Rect 0 (64 * fromEnum direc) 64 64)
+standStill (surf, _, _, _, _, _, _) direc
+  = (surf, SDL.Rect 0 (64 * fromEnum direc) 64 64)

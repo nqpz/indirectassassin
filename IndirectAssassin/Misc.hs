@@ -44,6 +44,9 @@ outM xs = out xs []
   where out [] ys = return ys
         out (x : xs) ys = x >>= \y -> out xs (y : ys)
 
+toUnit :: Monad m => [m a] -> m ()
+toUnit xs = outM xs >> return ()
+  
 posrem :: Int -> Int -> Int
 posrem n r = pos $ n `rem` r
   where pos n | n < 0 = r + n
@@ -57,4 +60,3 @@ instance (Num t, Num t1) => Num (t, t1) where
   abs (x, y) = (abs x, abs y)
   signum (x, y) = (signum x, signum y)
   fromInteger n = (fromIntegral n, fromIntegral n)
-

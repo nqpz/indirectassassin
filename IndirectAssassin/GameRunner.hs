@@ -56,7 +56,8 @@ theFPS :: IORef Word32
 theFPS = unsafePerformIO $ newIORef 50
 
 startCount :: IO ()
-startCount = (writeIORef theStartTime =<< SDL.getTicks) >> writeIORef theFrameCount 0
+startCount = (writeIORef theStartTime =<< SDL.getTicks) 
+             >> writeIORef theFrameCount 0
 
 getTimePassed :: IO Word32
 getTimePassed = do
@@ -102,8 +103,11 @@ runGames games = do
   -- print (getBackgroundMusic graphics)
   -- SDLmix.playMusic (getBackgroundMusic graphics) 2
   screenSurf <- SDL.getVideoSurface
-  let gameLists = map (\(game, name) -> createInfCenterList [GameExtra game Nothing False game name]) games
-  let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
+  let gameLists = map (\(game, name) -> 
+                        createInfCenterList 
+                        [GameExtra game Nothing False game name]) games
+  let (gameListLists, (currentGameList, currentGame))
+        = createInfCenterList gameLists
   startCount
   putStrLn "Start."
   gamesLoop screenSurf graphics (gameListLists, (currentGameList, currentGame))
@@ -113,54 +117,84 @@ runGames games = do
   SDL.quit
 
 
-gamesLoop :: SDL.Surface -> Graphics -> (CenterList (CenterList GameExtra, GameExtra), (CenterList GameExtra, GameExtra)) -> IO ()
-gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) = do
+gamesLoop :: SDL.Surface
+             -> Graphics
+             -> (CenterList (CenterList GameExtra, GameExtra),
+                 (CenterList GameExtra, GameExtra))
+             -> IO ()
+gamesLoop rootSurf graphics all@(gameListLists, 
+                                 (currentGameList, currentGame)) = do
   event <- SDL.pollEvent
   case event of 
-    SDL.NoEvent -> render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all
-    x           -> actOnEvent x
-  where actOnEvent event = case eventAction event of
-          Nothing -> render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all
-          Just t -> case t of
-            PrevGame -> render rootSurf graphics (snd prevGame) >> gamesLoop rootSurf graphics (gameListLists, prevGame)
-            NextGame -> render rootSurf graphics (snd nextGame) >> gamesLoop rootSurf graphics (gameListLists, nextGame)
-            PrevMap -> render rootSurf graphics (snd $ snd prevMap) >> gamesLoop rootSurf graphics prevMap
-            NextMap -> render rootSurf graphics (snd $ snd nextMap) >> gamesLoop rootSurf graphics nextMap
-            NewDirection direc -> let (agentPos, Agent _ items) = getGameAgent $ getGame currentGame
-                                  in gamesLoop rootSurf graphics (gameListLists, (currentGameList, currentGame { getGame = Map.insert agentPos (Agent direc items) $ getGame currentGame }))
-            ToggleCheat -> let newGameExtra = currentGame { isCheating = not $ isCheating currentGame }
-                           in render rootSurf graphics newGameExtra >> gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGameExtra))
-            Accept -> maybe (render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all) 
-                      (const (render rootSurf graphics newGameExtra >> gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGameExtra)))) (hasWon currentGame)
-                      where newGameExtra = currentGame { hasWon = Nothing }
-            AgentAction action -> makeAndShowNewGame
-              where makeAndShowNewGame = do
-                      case hasWon currentGame of
-                        Nothing -> makeAndShow'
-                        Just b -> renderEndScreen rootSurf graphics b >> gamesLoop rootSurf graphics all
-                    makeAndShow' = do
-                      let (stepEffect, game', posChanges) = (getGame currentGame) `step` action
-                      let hasWon' = case stepEffect of
-                            GameWon b -> Just b
-                            _ -> Nothing
-                      let newGame = currentGame { getGame = game' 
-                                                , hasWon = hasWon'
-                                                }
-                      case stepEffect of
-                        NoChange -> return ()
-                        NewGame -> renderInterpolated rootSurf graphics currentGame newGame posChanges
-                        GameWon b -> renderInterpolated rootSurf graphics currentGame newGame posChanges >> renderEndScreen rootSurf graphics b
-                      gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGame))
-            ExitGame -> return ()
-          where  
-            prevGame = prevElement currentGameList currentGame
-            nextGame = nextElement currentGameList currentGame
-            prevMap  = prevElement gameListLists (currentGameList, currentGame)
-            nextMap  = nextElement gameListLists (currentGameList, currentGame)
+    SDL.NoEvent -> render rootSurf graphics currentGame 
+                   >> gamesLoop rootSurf graphics all
+    event -> case eventAction event of
+      Nothing -> render rootSurf graphics currentGame
+                 >> gamesLoop rootSurf graphics all
+      Just t -> case t of
+        PrevGame -> render rootSurf graphics (snd prevGame)
+                    >> gamesLoop rootSurf graphics (gameListLists, prevGame)
+        NextGame -> render rootSurf graphics (snd nextGame) 
+                    >> gamesLoop rootSurf graphics (gameListLists, nextGame)
+        PrevMap -> render rootSurf graphics (snd $ snd prevMap) 
+                   >> gamesLoop rootSurf graphics prevMap
+        NextMap -> render rootSurf graphics (snd $ snd nextMap) 
+                   >> gamesLoop rootSurf graphics nextMap
+        NewDirection direc -> let (agentPos, Agent _ items) 
+                                    = getGameAgent $ getGame currentGame
+                              in gamesLoop rootSurf graphics
+                                 (gameListLists,
+                                  (currentGameList,
+                                   currentGame { 
+                                     getGame = Map.insert agentPos
+                                               (Agent direc items) 
+                                               $ getGame currentGame }))
+        ToggleCheat -> let newGameExtra = currentGame {
+                             isCheating = not $ isCheating currentGame }
+                       in render rootSurf graphics newGameExtra
+                          >> gamesLoop rootSurf graphics 
+                          (gameListLists, (currentGameList, newGameExtra))
+        Accept -> maybe (render rootSurf graphics currentGame 
+                         >> gamesLoop rootSurf graphics all)
+                  (const (render rootSurf graphics newGameExtra 
+                          >> gamesLoop rootSurf graphics 
+                          (gameListLists, (currentGameList, newGameExtra))))
+                  (hasWon currentGame)
+          where newGameExtra = currentGame { getGame = getOrigGame currentGame
+                                           , hasWon = Nothing
+                                           }
+        AgentAction action -> do
+          case hasWon currentGame of
+            Just b -> renderEndScreen rootSurf graphics b 
+                      >> gamesLoop rootSurf graphics all
+            Nothing -> do
+              let (stepEffect, game', posChanges) 
+                    = (getGame currentGame) `step` action
+              let hasWon' = case stepEffect of
+                    GameWon b -> Just b
+                    _ -> Nothing
+              let newGame = currentGame { getGame = game' 
+                                        , hasWon = hasWon'
+                                        }
+              case stepEffect of
+                NoChange -> return ()
+                NewGame -> renderInterpolated rootSurf graphics currentGame 
+                           newGame posChanges
+                GameWon b -> renderInterpolated rootSurf graphics currentGame 
+                             newGame posChanges 
+                             >> renderEndScreen rootSurf graphics b
+              gamesLoop rootSurf graphics (gameListLists, 
+                                           (currentGameList, newGame))
+        ExitGame -> return ()
+  where  
+    prevGame = prevElement currentGameList currentGame
+    nextGame = nextElement currentGameList currentGame
+    prevMap  = prevElement gameListLists (currentGameList, currentGame)
+    nextMap  = nextElement gameListLists (currentGameList, currentGame)
 
 eventAction :: SDL.Event -> Maybe UserAction
 eventAction (SDL.KeyDown (Keysym k mods c))
-  | [KeyModCtrl, KeyModLeftCtrl, KeyModRightCtrl] `anyelem` mods = case k of 
+  | [KeyModCtrl, KeyModLeftCtrl, KeyModRightCtrl] `anyelem` mods = case k of
       SDLK_UP    -> Just PrevGame
       SDLK_DOWN  -> Just NextGame
       SDLK_LEFT  -> Just PrevMap
@@ -205,103 +239,143 @@ calculateDelay = do
   msecs <- getTimePassed
   fn <- getFrameNumber
   fps <- getMaxFPS
-  let delay = max 0 $ 1000 * fromIntegral fn / fromIntegral fps - fromIntegral msecs
+  let delay = max 0 $ 1000 * fromIntegral fn / fromIntegral fps 
+              - fromIntegral msecs
   return $ delay * 1000
 
-drawItems :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool]
-drawItems surf graphics game mapOffset = outM [ blitItem pos item | (pos, Item item) <- filter (isItem . snd) $ Map.toList game ]
+drawItems :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
+drawItems surf graphics game mapOffset 
+  = toUnit [ blitItem pos item | 
+             (pos, Item item) <- filter (isItem . snd) $ Map.toList game ]
   where blitItem :: Position -> Item -> IO Bool
         blitItem (x, y) item = do
           t <- getTimePassed
           let (itemSurf, itemRect) = itemToImage graphics item t
-          let offset = (floor $ fromIntegral (64 - SDL.rectW itemRect) / 2, floor $ fromIntegral (64 - SDL.rectH itemRect) / 2)
+          let offset = (floor $ fromIntegral (64 - SDL.rectW itemRect) / 2, 
+                        floor $ fromIntegral (64 - SDL.rectH itemRect) / 2)
           SDL.blitSurface itemSurf (Just itemRect) surf
-            $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) (snd mapOffset + y * 64 + snd offset) (SDL.rectW itemRect) (SDL.rectH itemRect)
+            $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) 
+            (snd mapOffset + y * 64 + snd offset) 0 0
+        
   
-drawProfessors :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> Map.Map Position Position -> Int -> IO [Bool]
-drawProfessors surf graphics game mapOffset posChanges i = outM [ blitProf dir pos $ map fst items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
+drawProfessors :: SDL.Surface -> Graphics -> Game -> (Int, Int) 
+                  -> Map.Map Position Position -> Int -> IO ()
+drawProfessors surf graphics game mapOffset posChanges i 
+  = toUnit [ blitProf dir pos $ map fst items |
+             (pos, Professor dir items) <- 
+               filter (isProfessor . snd) $ Map.toList game ]
   where blitProf :: Direction -> Position -> [Item] -> IO Bool 
         blitProf dir pos@(x, y) items = do
           t <- getTimePassed
           let sprite = profSprite graphics dir pos items
-          let ((profSurf, profRect), offset) = maybe (snd sprite, (0, 0))
-                                                 (\op -> (((fst sprite) t),
-                                                          (-((7 - i) + 1) * 8, -((7 - i) + 1) * 8) * calcOffset dir))
-                                                 (Map.lookup pos posChanges)
+          let ((profSurf, profRect), offset)
+                = maybe (snd sprite, (0, 0)) 
+                  (\op -> (((fst sprite) t), 
+                           (-((7 - i) + 1) * 8, -((7 - i) + 1) * 8) 
+                           * calcOffset dir)) (Map.lookup pos posChanges)
           SDL.blitSurface profSurf (Just profRect) surf
-            $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) (snd mapOffset + y * 64 + snd offset) 64 64
+            $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) 
+            (snd mapOffset + y * 64 + snd offset) 64 64
         
-drawProfessorsStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool]
-drawProfessorsStill surf graphics game mapOffset = outM [ blitProf dir pos $ map fst items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
+drawProfessorsStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
+drawProfessorsStill surf graphics game mapOffset
+  = toUnit [ blitProf dir pos $ map fst items | 
+             (pos, Professor dir items) <- 
+               filter (isProfessor . snd) $ Map.toList game ]
   where blitProf :: Direction -> Position -> [Item] -> IO Bool 
         blitProf dir pos@(x, y) items = do
           let (profSurf, profRect) = snd $ profSprite graphics dir pos items
           SDL.blitSurface profSurf (Just profRect) surf
-            $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
+            $ Just $ SDL.Rect (fst mapOffset + x * 64)
+            (snd mapOffset + y * 64) 64 64
 
-drawAgent :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> Map.Map Position Position -> Int -> IO Bool
+drawAgent :: SDL.Surface -> Graphics -> Game -> (Int, Int) 
+             -> Map.Map Position Position -> Int -> IO ()
 drawAgent surf graphics game mapOffset posChanges i = do
   let (p@(x, y), Agent dir items) = getGameAgent game
   t <- getTimePassed  
-  let ((agentSurf, agentRect), offset) = maybe (snd $ (getAgent graphics) dir, (0, 0))
-                                         (\op -> (((fst $ (getAgent graphics) dir) t),
-                                                  (((7 - i) + 1) * 8, ((7 - i) + 1) * 8) * calcOffset dir))
-                                         (Map.lookup p posChanges)
+  let ((agentSurf, agentRect), offset)
+        = maybe (snd $ (getAgent graphics) dir, (0, 0))
+          (\op -> (((fst $ (getAgent graphics) dir) t),
+                   (((7 - i) + 1) * 8, ((7 - i) + 1) * 8) * calcOffset dir))
+          (Map.lookup p posChanges)
   SDL.blitSurface agentSurf (Just agentRect) surf
-    $ Just $ SDL.Rect (fst mapOffset + x * 64 - fst offset) (snd mapOffset + y * 64 - snd offset) 64 64
+    $ Just $ SDL.Rect (fst mapOffset + x * 64 - fst offset)
+    (snd mapOffset + y * 64 - snd offset) 64 64
+  return ()
     
-drawAgentStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO Bool
+drawAgentStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
 drawAgentStill surf graphics game mapOffset = do
-  let (pos@(x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
+  let (pos@(x, y), Agent dir items) = head $ filter (isAgent . snd)
+                                      $ Map.toList game
   let (agentSurf, agentRect) = snd $ (getAgent graphics) dir
   SDL.blitSurface agentSurf (Just agentRect) surf
     $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
+  return ()
 
-drawWalls :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool]
-drawWalls surf graphics game mapOffset = outM [ blitWall pos | pos <- sortBy depth $ map fst $ filter (isWall . snd) $ Map.toList game ]
+drawWalls :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
+drawWalls surf graphics game mapOffset
+  = toUnit [ blitWall pos | 
+             pos <- sortBy depth $ map fst 
+                    $ filter (isWall . snd) $ Map.toList game ]
   where depth (_, y0) (_, y1) = compare y0 y1
         blitWall :: Position -> IO Bool
         blitWall (x, y) = do
           SDL.blitSurface (getWall graphics) Nothing surf
-            $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64 - 26) 64 88
+            $ Just $ SDL.Rect (fst mapOffset + x * 64)
+            (snd mapOffset + y * 64 - 26) 64 88
 
 drawDarkness :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
-drawDarkness surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0..11], y <- [0..8] ] >> return ()
+drawDarkness surf graphics game mapOffset
+  = toUnit [ blitLighting (x, y) | x <- [0..11], y <- [0..8] ]
   where lighting = getLighting game
         blitLighting :: Position -> IO Bool
-        blitLighting (x, y) = SDL.blitSurface (getLightingSurf graphics $ maybe Darkness id $ Map.lookup 
-                                               (x - (floor $ fromIntegral (fst mapOffset) / 64), 
-                                                y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting) 
-                              Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
+        blitLighting (x, y)
+          = SDL.blitSurface (getLightingSurf graphics
+                             $ maybe Darkness id $ Map.lookup 
+                             (x - (floor $ fromIntegral (fst mapOffset) / 64),
+                              y - (floor $ fromIntegral (snd mapOffset) / 64)) 
+                             lighting) 
+            Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64
 
 drawLight :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO ()
-drawLight surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0..11], y <- [0..8] ] >> return ()
+drawLight surf graphics game mapOffset
+  = toUnit [ blitLighting (x, y) | 
+             x <- [0..11], y <- [0..8] ]
   where lighting = getLighting game
         blitLighting :: Position -> IO Bool
-        blitLighting (x, y) = maybe (return True) (\l -> SDL.blitSurface (getLightingSurf graphics l)
-                                                       Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64) 
-                              $ Map.lookup (x - (floor $ fromIntegral (fst mapOffset) / 64), 
-                                            y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting
+        blitLighting (x, y)
+          = maybe (return True) 
+            (\l -> SDL.blitSurface (getLightingSurf graphics l)
+                   Nothing surf $ Just $ SDL.Rect (x * 64) (y * 64) 64 64)
+            $ Map.lookup (x - (floor $ fromIntegral (fst mapOffset) / 64),
+                          y - (floor $ fromIntegral (snd mapOffset) / 64))
+            lighting
 
 getItemChars :: Game -> [Char]
-getItemChars game = catMaybes $ map itemToChar $ getAgentItems $ snd $ getGameAgent game
+getItemChars = catMaybes . map itemToChar . getAgentItems . snd . getGameAgent
 
-drawItemChars :: SDL.Surface -> Graphics -> Game -> IO Bool
+drawItemChars :: SDL.Surface -> Graphics -> Game -> IO ()
 drawItemChars rootSurf graphics game = do
-  textSurf <- SDLttf.renderTextSolid (getFont graphics) ("Items " ++ (getItemChars game)) $ SDL.Color 200 30 0
+  textSurf <- SDLttf.renderTextSolid (getFont graphics)
+              ("Items " ++ (getItemChars game)) $ SDL.Color 200 30 0
   SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 20 0 0
+  return ()
 
-drawGameName :: SDL.Surface -> Graphics -> String -> IO Bool
+drawGameName :: SDL.Surface -> Graphics -> String -> IO ()
 drawGameName rootSurf graphics name = do
-  textSurf <- SDLttf.renderTextSolid (getFont graphics) name $ SDL.Color 0 130 30
+  textSurf <- SDLttf.renderTextSolid (getFont graphics) name
+              $ SDL.Color 0 130 30
   SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 520 0 0
+  return ()
 
-blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO Bool
+blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO ()
 blitFloor rootSurf graphics mapOffset = do
+  let floorS = getFloor graphics
   SDL.blitSurface floorS Nothing rootSurf
     $ Just $ SDL.Rect (fst mapOffset `posrem` 192 - 128) 0
     (SDL.surfaceGetWidth floorS) (SDL.surfaceGetHeight floorS)
-  where floorS = getFloor graphics
+  return ()
 
 render :: SDL.Surface -> Graphics -> GameExtra -> IO ()
 render rootSurf graphics gameExtra = do
@@ -323,14 +397,17 @@ render rootSurf graphics gameExtra = do
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
                 mapOffset = calcMapOffset game
-                calcMapOffset game = (64, 64) * ((6, 4) - (fst $ getGameAgent game))
+                calcMapOffset game = (64, 64)
+                                     * ((6, 4) - (fst $ getGameAgent game))
 
-renderInterpolated :: SDL.Surface -> Graphics -> GameExtra -> GameExtra -> Map.Map Position Position -> IO ()
+renderInterpolated :: SDL.Surface -> Graphics -> GameExtra -> GameExtra
+                      -> Map.Map Position Position -> IO ()
 renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
   t <- SDL.getTicks
   renderAll t (t + 320) t
   where renderAll start end now = do
-          let i = floor (fromIntegral (now - start) / (fromIntegral (end - start) / 8))
+          let i = floor (fromIntegral (now - start) 
+                         / (fromIntegral (end - start) / 8))
           renderOne i
           now' <- SDL.getTicks
           if now' < end
@@ -352,13 +429,15 @@ renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
                 mapOffset = calcMapOffset game
                 agentPos = fst $ getGameAgent game
-                calcMapOffset game = (64, 64) * ((6, 4) - maybe agentPos id (Map.lookup agentPos posChanges))
+                calcMapOffset game = (64, 64) * (
+                  (6, 4) - maybe agentPos id (Map.lookup agentPos posChanges))
 
 
 renderEndScreen :: SDL.Surface -> Graphics -> Bool -> IO ()
 renderEndScreen rootSurf graphics won = do
   fillSurf (if won then 0x000000ff else 0x00ff0000) rootSurf
-  textSurf <- SDLttf.renderTextSolid (getFont graphics) (message won) $ SDL.Color 0 0 0
+  textSurf <- SDLttf.renderTextSolid (getFont graphics) (message won)
+              $ SDL.Color 0 0 0
   SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 20 0 0
   SDL.flip rootSurf
   waitForNextFrame

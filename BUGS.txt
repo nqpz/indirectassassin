@@ -25,8 +25,8 @@ I consider it a bug that GameRunner.hs is so ugly. This is my first real
 Haskell program, and I found Logic.hs more interesting to work on, meaning I
 never got around to fixing GameRunner.hs. For one thing, there's a lot of code
 duplication which is not nice. It would also be nice with some actual
-commenting of code. There's also a lot of lines where length line > 80. My
-separation of code into modules is also a bit arbitrary at times.
+commenting of code. My separation of code into modules is also a bit arbitrary
+at times. And other things.
 
 
 Few maps

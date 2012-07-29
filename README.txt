@@ -77,7 +77,8 @@ download and install Haskell SDL bindings:
 
 Once this is done, run (from the root directory of the extracted tarball):
 
-    runhaskell Setup.hs configure
+    runhaskell Setup.hs configure           # if your packages are global, or
+    runhaskell Setup.hs configure --user    # if your packages are local
     runhaskell Setup.hs build
     runhaskell Setup.hs install
 

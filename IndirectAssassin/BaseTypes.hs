@@ -66,13 +66,16 @@ type SurfPart = (SDL.Surface, SDL.Rect)
 type CenterList a = ([a], [a])
 
 nextElement :: CenterList a -> a -> (CenterList a, a)
-nextElement (before, (next : after)) current = ((current : before, after), next)
+nextElement (before, (next : after)) current 
+  = ((current : before, after), next)
 
 prevElement :: CenterList a -> a -> (CenterList a, a)
-prevElement ((prev : before), after) current = ((before, current : after), prev)
+prevElement ((prev : before), after) current 
+  = ((before, current : after), prev)
 
 createInfCenterList :: [a] -> (CenterList a, a)
-createInfCenterList xs'@(x : xs) = ((cycle $ reverse xs', cycle (xs ++ [x])), x)
+createInfCenterList xs'@(x : xs) 
+  = ((cycle $ reverse xs', cycle (xs ++ [x])), x)
 
 
 data Item = Barrels   -- A
@@ -127,7 +130,8 @@ data GameExtra = GameExtra { getGame :: Game
 data Lighting = Darkness | Flashlight | NightVision
               deriving (Show, Eq)
 
-(charToItem, itemToChar) = (lookupOn alist, lookupOn $ map (\(a, b) -> (b, a)) alist)
+(charToItem, itemToChar) = (lookupOn alist, 
+                            lookupOn $ map (\(a, b) -> (b, a)) alist)
   where alist = [('A', Barrels), ('U', Buckets), ('R', GreenBee),
                  ('I', Diamond), ('O', Tomato), ('C', IceShield),
                  ('L', Toilet), ('E', YellowBat)]
@@ -186,4 +190,3 @@ data Graphics = Graphics { getFloor :: SDL.Surface
                          , getLightingSurf :: Lighting -> SDL.Surface
                          -- , getBackgroundMusic :: SDLmix.Music
                          }
-

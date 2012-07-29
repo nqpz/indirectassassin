@@ -40,18 +40,22 @@ parseGameMap cs = (getMap top'' $ getMeta bottom, top')
         getMeta = foldl' makeMeta Map.empty . map words . lines
           where 
             makeMeta metaMap ([identifier] : direction : items)
-              = Map.insert identifier (t (stringToDirection direction) $ map stringToItem items) metaMap
+              = Map.insert identifier (t (stringToDirection direction)
+                                       $ map stringToItem items) metaMap
                 where t = case identifier of 
                         '!' -> Agent
-                        _   -> \dir items -> Professor dir $ map itemWithLast items
+                        _   -> \dir items -> Professor dir
+                                             $ map itemWithLast items
         
         getMap top meta = snd $ foldl' build ((0, 0), Map.empty) top
           where build ((_, y), game) '\n' = ((0, y + 1), game)
-                build (p@(x, y), game) c  = ((x + 1, y), Map.insert p (getCell c) game)
+                build (p@(x, y), game) c  = ((x + 1, y), 
+                                             Map.insert p (getCell c) game)
                 
                 getCell '#' = Wall
                 getCell ' ' = Empty
-                getCell c   = maybe (maybe (error ("no such item: " ++ [c])) Item $ charToItem c) id $ Map.lookup c meta
+                getCell c   = maybe (maybe (error ("no such item: " ++ [c])) 
+                                     Item $ charToItem c) id $ Map.lookup c meta
 
 loadGameMap :: String -> IO (Game, String)
 loadGameMap filePath = do
