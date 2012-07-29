@@ -13,14 +13,6 @@ Indirect Assassin is written by Niels G. W. Serup <ns@metanohi.name>.
 Art authors
 -----------
 
-### data/sound/background_music.ogg
-
-Edited version of the track "les memoires mortes" from the album "obscures
-reflexions" by the artist MOONDARK; see
-http://www.jamendo.com/en/track/77577/les-memoires-mortes for more
-information. Licensed under the Free Art License 1.3.
-
-
 ### data/character/soldier_(normal|zombie).png
 
 From LPC 2012. Barbara Rivera's "Concept Art for LPC Entry".

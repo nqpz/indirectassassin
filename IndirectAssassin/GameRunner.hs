@@ -30,7 +30,7 @@ import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import qualified Graphics.UI.SDL.TTF as SDLttf
-import qualified Graphics.UI.SDL.Mixer as SDLmix
+-- import qualified Graphics.UI.SDL.Mixer as SDLmix
 import Graphics.UI.SDL.Keysym
 import Control.Concurrent (threadDelay)
 import System.IO.Unsafe (unsafePerformIO)

@@ -1,0 +1,30 @@
+Bugs and missing features
+=========================
+
+Sound
+-----
+
+I couldn't get Haskell's SDL-mixer working. I tried on two different machines,
+and both gave me a floating point exception when trying to play an .ogg Vorbis
+file, though loading it seemed to be no problem. It is possible that it's my
+system which has incompatible libraries.
+
+
+Movement
+--------
+
+Not all movement is as fluid as it can be.
+
+
+Speed
+-----
+
+Efficiency was not my goal with the 0.1.0 release, which should be obvious when
+running my game on a not-too-new computer.
+
+
+GameRunner.hs code cleanup
+--------------------------
+
+I consider it a bug that GameRunner.hs is so ugly. This is my first real
+Haskell program, and I found Logic.hs more interesting.

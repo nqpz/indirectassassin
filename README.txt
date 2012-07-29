@@ -189,6 +189,9 @@ If a professor picks up a toilet, he doesn't move for 5 turns.
 
 If a professor picks up a yellow bat, he becomes a zombie soldier for 4 turns.
 
+If a professor is a zombie soldier, he will kill not only you, but also other
+professors (if he sees them).
+
 
 #### Maps
 

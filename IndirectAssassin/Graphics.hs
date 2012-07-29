@@ -63,7 +63,7 @@ data Graphics = Graphics { getFloor :: SDL.Surface
                          , getIceShield :: Word32 -> Word32 -> SurfPart
                          , getToilet :: Word32 -> Word32 -> SurfPart
                          , getLightingSurf :: Lighting -> SDL.Surface
-                         , getBackgroundMusic :: SDLmix.Music
+                         -- , getBackgroundMusic :: SDLmix.Music
                          }
 
 getGraphics :: IO Graphics
@@ -99,8 +99,8 @@ getGraphics = do
   fillSurf 0xfff22477 flashlightSurf
   fillSurf 0x0000ff77 nightVisionSurf
   
-  bgMusPath <- getDataFileName "data/sound/background_music.ogg"
-  backgroundMusic <- SDLmix.loadMUS bgMusPath
+  -- bgMusPath <- getDataFileName "data/sound/background_music.ogg"
+  -- backgroundMusic <- SDLmix.loadMUS bgMusPath
   
   return $ Graphics fullFloor wallSurf font
     (dirExpand (walkcycle agentCycle, standStill agentCycle))
@@ -113,7 +113,7 @@ getGraphics = do
     (\l -> case l of Darkness -> darknessSurf
                      Flashlight -> flashlightSurf
                      NightVision -> nightVisionSurf)
-    backgroundMusic
+    -- backgroundMusic
   where dirExpand (ani, still) direc = (ani direc, still direc)
         
 itemToImage :: Graphics -> Item -> Word32 -> Word32 -> SurfPart

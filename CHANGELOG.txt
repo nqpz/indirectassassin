@@ -1,0 +1,8 @@
+Changelog
+=========
+
+2012 July 29, version 0.1.0
+---------------------------
+
+Initial release. Several bugs exist. Features are a bit lacking.
+
