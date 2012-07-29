@@ -156,6 +156,39 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
             prevMap  = prevElement gameListLists (currentGameList, currentGame)
             nextMap  = nextElement gameListLists (currentGameList, currentGame)
 
+eventAction :: SDL.Event -> Maybe UserAction
+eventAction (SDL.KeyDown (Keysym k mods c))
+  | [KeyModCtrl, KeyModLeftCtrl, KeyModRightCtrl] `anyelem` mods = case k of 
+      SDLK_UP    -> Just PrevGame
+      SDLK_DOWN  -> Just NextGame
+      SDLK_LEFT  -> Just PrevMap
+      SDLK_RIGHT -> Just NextMap
+      SDLK_x     -> Just ToggleCheat
+      _          -> Nothing
+  | [KeyModShift, KeyModLeftShift, KeyModRightShift] `anyelem` mods = case k of
+      SDLK_UP    -> Just $ NewDirection Up
+      SDLK_DOWN  -> Just $ NewDirection Down
+      SDLK_LEFT  -> Just $ NewDirection Left
+      SDLK_RIGHT -> Just $ NewDirection Right
+      _          -> Nothing
+  | k == SDLK_UP     = Just $ AgentAction $ Go Up
+  | k == SDLK_LEFT   = Just $ AgentAction $ Go Left
+  | k == SDLK_DOWN   = Just $ AgentAction $ Go Down
+  | k == SDLK_RIGHT  = Just $ AgentAction $ Go Right
+  | k == SDLK_p      = Just $ AgentAction PassTurn
+  | k == SDLK_ESCAPE = Just ExitGame
+  | k == SDLK_RETURN || k == SDLK_KP_ENTER = Just Accept
+  | k == SDLK_a = ui Barrels
+  | k == SDLK_u = ui Buckets
+  | k == SDLK_e = ui YellowBat
+  | k == SDLK_r = ui GreenBee
+  | k == SDLK_i = ui Diamond
+  | k == SDLK_o = ui Tomato
+  | k == SDLK_c = ui IceShield
+  | otherwise = Nothing
+  where ui = Just . AgentAction . UseItem
+eventAction SDL.Quit = Just ExitGame
+eventAction _ = Nothing
 
 waitForNextFrame :: IO ()
 waitForNextFrame = do
@@ -189,7 +222,7 @@ drawProfessors surf graphics game mapOffset posChanges i = outM [ blitProf dir p
         blitProf dir pos@(x, y) items = do
           fn <- getFrameNumber
           fps <- getFPS
-          let sprite = profSprite graphics dir pos items
+          let sprite = profSprite graphics dir pos $ map fst items
           let ((profSurf, profRect), offset) = maybe (snd sprite, (0, 0))
                                                  (\op -> (((fst sprite) (fn `rem` fps) fps),
                                                           (-((7 - i) + 1) * 8, -((7 - i) + 1) * 8) * calcOffset dir))
@@ -201,7 +234,7 @@ drawProfessorsStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool
 drawProfessorsStill surf graphics game mapOffset = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
   where blitProf :: Direction -> Position -> [Item] -> IO Bool 
         blitProf dir pos@(x, y) items = do
-          let (profSurf, profRect) = snd $ profSprite graphics dir pos items
+          let (profSurf, profRect) = snd $ profSprite graphics dir pos $ map fst items
           SDL.blitSurface profSurf (Just profRect) surf
             $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
 
@@ -217,12 +250,6 @@ drawAgent surf graphics game mapOffset posChanges i = do
   SDL.blitSurface agentSurf (Just agentRect) surf
     $ Just $ SDL.Rect (fst mapOffset + x * 64 - fst offset) (snd mapOffset + y * 64 - snd offset) 64 64
     
-calcOffset :: Direction -> (Int, Int)
-calcOffset Up    = (0, -1)
-calcOffset Left  = (-1, 0)
-calcOffset Down  = (0, 1)
-calcOffset Right = (1, 0)
-            
 drawAgentStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO Bool
 drawAgentStill surf graphics game mapOffset = do
   let ((x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
@@ -330,37 +357,3 @@ renderEndScreen rootSurf graphics won = do
   waitForNextFrame
   where message True  = "You have won."
         message False = "You have lost."
-
-eventAction :: SDL.Event -> Maybe UserAction
-eventAction (SDL.KeyDown (Keysym k mods c))
-  | [KeyModCtrl, KeyModLeftCtrl, KeyModRightCtrl] `anyelem` mods = case k of 
-      SDLK_UP    -> Just PrevGame
-      SDLK_DOWN  -> Just NextGame
-      SDLK_LEFT  -> Just PrevMap
-      SDLK_RIGHT -> Just NextMap
-      SDLK_x     -> Just ToggleCheat
-      _          -> Nothing
-  | [KeyModShift, KeyModLeftShift, KeyModRightShift] `anyelem` mods = case k of
-      SDLK_UP    -> Just $ NewDirection Up
-      SDLK_DOWN  -> Just $ NewDirection Down
-      SDLK_LEFT  -> Just $ NewDirection Left
-      SDLK_RIGHT -> Just $ NewDirection Right
-      _          -> Nothing
-  | k == SDLK_UP     = Just $ AgentAction $ Go Up
-  | k == SDLK_LEFT   = Just $ AgentAction $ Go Left
-  | k == SDLK_DOWN   = Just $ AgentAction $ Go Down
-  | k == SDLK_RIGHT  = Just $ AgentAction $ Go Right
-  | k == SDLK_p      = Just $ AgentAction PassTurn
-  | k == SDLK_ESCAPE = Just ExitGame
-  | k == SDLK_RETURN || k == SDLK_KP_ENTER = Just Accept
-  | k == SDLK_a = ui Barrels
-  | k == SDLK_u = ui Buckets
-  | k == SDLK_e = ui YellowBat
-  | k == SDLK_r = ui GreenBee
-  | k == SDLK_i = ui Diamond
-  | k == SDLK_o = ui Tomato
-  | k == SDLK_c = ui IceShield
-  | otherwise = Nothing
-  where ui = Just . AgentAction . UseItem
-eventAction SDL.Quit = Just ExitGame
-eventAction _ = Nothing

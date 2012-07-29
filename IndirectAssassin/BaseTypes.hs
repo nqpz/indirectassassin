@@ -89,7 +89,7 @@ isTurnDirection _ = False
 data Cell = Wall
           | Empty
           | Professor { getDirection :: Direction 
-                      , getItems :: [Item]
+                      , getItems :: [(Item, Int)]
                       }
           | Agent  { getDirection :: Direction 
                    , getItems :: [Item]
@@ -120,3 +120,41 @@ data GameExtra = GameExtra { getGame :: Game
 
 data Lighting = Darkness | Flashlight | NightVision
               deriving (Show, Eq)
+
+(charToItem, itemToChar) = (lookupOn alist, lookupOn $ map (\(a, b) -> (b, a)) alist)
+  where alist = [('A', Barrels), ('U', Buckets), ('E', GreenBee),
+                 ('I', Diamond), ('O', Tomato), ('C', IceShield),
+                 ('L', Toilet)]
+        lookupOn alist x = Map.lookup x $ Map.fromList alist
+
+stringToItem :: String -> Item
+stringToItem ('t':'u':'r':'n':'-':cs) = TurnAtWall $ stringToDirection cs
+stringToItem (c : cs) | null cs = maybe (error "no parse") id $ charToItem c
+
+isProfessor :: Cell -> Bool
+isProfessor (Professor _ _) = True
+isProfessor _               = False
+
+isAgent :: Cell -> Bool
+isAgent (Agent _ _) = True
+isAgent _           = False
+
+isItem :: Cell -> Bool
+isItem (Item _) = True
+isItem _        = False
+
+isWall :: Cell -> Bool
+isWall Wall = True
+isWall _    = False
+
+isEmpty :: Cell -> Bool
+isEmpty Empty = True
+isEmpty _     = False
+
+cellAt game p = maybe Empty id $ Map.lookup p game
+
+calcOffset :: Direction -> (Int, Int)
+calcOffset Up    = (0, -1)
+calcOffset Left  = (-1, 0)
+calcOffset Down  = (0, 1)
+calcOffset Right = (1, 0)

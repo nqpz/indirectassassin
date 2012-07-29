@@ -30,39 +30,8 @@ import Data.Maybe
 import qualified Data.Map as Map
 -- Local
 import IndirectAssassin.BaseTypes
+import IndirectAssassin.Logic
 import IndirectAssassin.Misc
-
-(charToItem, itemToChar) = (lookupOn alist, lookupOn $ map (\(a, b) -> (b, a)) alist)
-  where alist = [('A', Barrels), ('U', Buckets), ('E', GreenBee),
-                 ('I', Diamond), ('O', Tomato), ('C', IceShield),
-                 ('L', Toilet)]
-        lookupOn alist x = Map.lookup x $ Map.fromList alist
-
-stringToItem :: String -> Item
-stringToItem ('t':'u':'r':'n':'-':cs) = TurnAtWall $ stringToDirection cs
-stringToItem (c : cs) | null cs = maybe (error "no parse") id $ charToItem c
-
-isProfessor :: Cell -> Bool
-isProfessor (Professor _ _) = True
-isProfessor _               = False
-
-isAgent :: Cell -> Bool
-isAgent (Agent _ _) = True
-isAgent _           = False
-
-isItem :: Cell -> Bool
-isItem (Item _) = True
-isItem _        = False
-
-isWall :: Cell -> Bool
-isWall Wall = True
-isWall _    = False
-
-isEmpty :: Cell -> Bool
-isEmpty Empty = True
-isEmpty _     = False
-
-cellAt game p = maybe Empty id $ Map.lookup p game
 
 parseGameMap :: String -> Game
 parseGameMap cs = getMap top $ getMeta bottom
@@ -74,7 +43,7 @@ parseGameMap cs = getMap top $ getMeta bottom
               = Map.insert identifier (t (stringToDirection direction) $ map stringToItem items) metaMap
                 where t = case identifier of 
                         '!' -> Agent
-                        _   -> Professor
+                        _   -> \dir items -> Professor dir $ map itemWithLast items
         
         getMap top meta = snd $ foldl' build ((0, 0), Map.empty) top
           where build ((_, y), game) '\n' = ((0, y + 1), game)

@@ -183,11 +183,22 @@ item keys.
 
 Some items are good for the professors, some are bad. None of them affect you.
 
-If a professor enters a tile with a green bee, he dies instantly.
+If a professor enters a tile with...
 
-If a professor enters a tile with a toilet, he doesn't move for 5 turns.
+* barrels, he empties the barrels and turns around.
+* buckets, he drinks water and figures out how to extend his flashlight light
+  distance two tiles more for 6 turns.
+* a yellow bat, he becomes a zombie soldier for 4 turns.
+* a green bee, he dies instantly.
+* a diamond, he becomes rich and turns around.
+* a tomato, he turns into a normal (not zombie) soldier for 7 turns.
+* an ice shield, he becomes unable to pick up new items for 3 turns, and
+  instead destroys them instantly when touching them.
+* a toilet, he doesn't move for 10 turns.
 
-If a professor enters a tile with a yellow bat, he becomes a zombie soldier for 4 turns.
+If a professor is a normal soldier, he will be able to sense your presence and
+move towards you. Such a soldier is not very smart, so a wall is enough to stop
+him; he will not try to walk a different route.
 
 If a professor is a zombie soldier, he will kill not only you, but also other
 professors (if he sees them).

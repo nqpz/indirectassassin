@@ -1,6 +1,9 @@
 Bugs and missing features
 =========================
 
+These things will hopefully have been fixed in the next release.
+
+
 Sound
 -----
 
@@ -21,11 +24,15 @@ Speed
 -----
 
 Efficiency was not my goal with the 0.1.0 release, which should be obvious when
-running my game on a not-too-new computer.
+running my game on a not-too-new computer. Since the code needs to be
+refactored anyway, making it more efficient could be done at the same time.
 
 
-GameRunner.hs code cleanup
---------------------------
+Code cleanup
+------------
 
 I consider it a bug that GameRunner.hs is so ugly. This is my first real
-Haskell program, and I found Logic.hs more interesting.
+Haskell program, and I found Logic.hs more interesting to work on, meaning I
+never got around to fixing GameRunner.hs. For one thing, there's a lot of code
+duplication which is not nice. It would also be nice with some actual
+commenting of code. There's also a lot of lines where length line > 80.
