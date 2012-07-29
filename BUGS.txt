@@ -4,16 +4,6 @@ Bugs and missing features
 These things will hopefully have been fixed in the next release.
 
 
-Lack of sound
--------------
-
-I couldn't get Haskell's SDL-mixer working. I tried on two different machines,
-and both gave me a floating point exception when trying to play an .ogg Vorbis
-file, though loading it seemed to be no problem. It is possible that it's my
-system which has incompatible libraries. Once I get around to updating my
-entire system, I'll report it if I still experience it.
-
-
 Stiff movement
 --------------
 
@@ -43,4 +33,25 @@ Few maps
 --------
 
 This game needs more maps. Fortunately, the format is simple, and people can
-make their own maps.
+make their own maps. The included maps must be fun to play. The current maps
+have been created without great care.
+
+
+Winnability not ensured
+-----------------------
+
+The maps that come with this version of Indirect Asssassin have not been
+checked for winnability. It might be a good idea to develop a tool to check for
+winnability.
+
+
+Lack of sound
+-------------
+
+I couldn't get Haskell's SDL-mixer working. I tried on two different machines,
+and both gave me a floating point exception when trying to play an .ogg Vorbis
+file, though loading it seemed to be no problem. It is possible that it's my
+system which has incompatible libraries. Once I get around to updating my
+entire system, I'll report it if I still experience it. Somewhat similarly, due
+to SDLttf, I always get a segfault when the program exits; this might also have
+something to do with my old computer and its non-upgraded distro.

@@ -120,6 +120,7 @@ data GameExtra = GameExtra { getGame :: Game
                            , hasWon :: Maybe Bool
                            , isCheating :: Bool
                            , getOrigGame :: Game
+                           , getGameName :: String
                            }
                deriving (Show, Eq)
 

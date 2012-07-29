@@ -33,10 +33,10 @@ import IndirectAssassin.BaseTypes
 import IndirectAssassin.Logic
 import IndirectAssassin.Misc
 
-parseGameMap :: String -> Game
-parseGameMap cs = getMap top $ getMeta bottom
+parseGameMap :: String -> (Game, String)
+parseGameMap cs = (getMap top'' $ getMeta bottom, top')
   where top : bottom : _ = U.split "\n\n" cs
-        
+        (top', _ : top'') = break (=='\n') top
         getMeta = foldl' makeMeta Map.empty . map words . lines
           where 
             makeMeta metaMap ([identifier] : direction : items)
@@ -53,7 +53,7 @@ parseGameMap cs = getMap top $ getMeta bottom
                 getCell ' ' = Empty
                 getCell c   = maybe (maybe (error ("no such item: " ++ [c])) Item $ charToItem c) id $ Map.lookup c meta
 
-loadGameMap :: String -> IO Game
+loadGameMap :: String -> IO (Game, String)
 loadGameMap filePath = do
   contents <- readFile filePath
   return $ parseGameMap contents

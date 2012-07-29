@@ -237,6 +237,7 @@ your own maps.
 
 A small map might look like this:
 
+    A Small Map
     #####
     #!O #
     #  x#
@@ -258,9 +259,10 @@ to contain more): turn-up, turn-left, turn-down, and turn-right. If no such
 special item is given to a professor, the professor does not move. The Agent
 has no use for these special items and will ignore them if given to him.
 
-* A map file consists of a map, then two newlines, then line-separated extra
-  data about the map's professors and agent. This implies that the map may not
-  contain two newlines after each other.
+* A map file consists of a title, then a newline, then a map, then two
+  newlines, then line-separated extra data about the map's professors and
+  agent. This implies that the map may not contain two newlines after each
+  other.
 * To place a piece of a wall in a map, use a '#'.
 * To place an item in a map, use its key in uppercase.
 * To place The Agent, use an '!'.

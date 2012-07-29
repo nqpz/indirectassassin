@@ -8,6 +8,8 @@ import IndirectAssassin.Misc
 import IndirectAssassin.Map (loadGameMap)
 import IndirectAssassin.GameRunner
 
+nMaps = 3
+
 main :: IO ()
 main = do
   args <- getArgs
@@ -16,7 +18,7 @@ main = do
     then printHelp
     else runGames =<< (outM $ map loadGameMap (args ++ incMaps))
 
-includedMaps = [ "map" ++ show i ++ ".map" | i <- [0..2] ]
+includedMaps = [ "map" ++ show i ++ ".map" | i <- [0..nMaps] ]
 
 printHelp :: IO ()
 printHelp = do

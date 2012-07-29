@@ -91,7 +91,7 @@ calculateFPS :: Word32 -> Word32 -> Double
 calculateFPS time fn = fromIntegral fn * 1000 / fromIntegral time
 
 
-runGames :: [Game] -> IO ()
+runGames :: [(Game, String)] -> IO ()
 runGames games = do
   SDL.init [SDL.InitEverything]
   SDLttf.init
@@ -102,7 +102,7 @@ runGames games = do
   -- print (getBackgroundMusic graphics)
   -- SDLmix.playMusic (getBackgroundMusic graphics) 2
   screenSurf <- SDL.getVideoSurface
-  let gameLists = map (\game -> createInfCenterList [GameExtra game Nothing False game]) games
+  let gameLists = map (\(game, name) -> createInfCenterList [GameExtra game Nothing False game name]) games
   let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
   startCount
   putStrLn "Start."
@@ -128,11 +128,11 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
             NextMap -> render rootSurf graphics (snd $ snd nextMap) >> gamesLoop rootSurf graphics nextMap
             NewDirection direc -> let (agentPos, Agent _ items) = getGameAgent $ getGame currentGame
                                   in gamesLoop rootSurf graphics (gameListLists, (currentGameList, currentGame { getGame = Map.insert agentPos (Agent direc items) $ getGame currentGame }))
-            ToggleCheat -> let newGameExtra = GameExtra (getGame currentGame) (hasWon currentGame) (not $ isCheating currentGame) (getOrigGame currentGame)
+            ToggleCheat -> let newGameExtra = currentGame { isCheating = not $ isCheating currentGame }
                            in render rootSurf graphics newGameExtra >> gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGameExtra))
             Accept -> maybe (render rootSurf graphics currentGame >> gamesLoop rootSurf graphics all) 
                       (const (render rootSurf graphics newGameExtra >> gamesLoop rootSurf graphics (gameListLists, (currentGameList, newGameExtra)))) (hasWon currentGame)
-                      where newGameExtra = GameExtra (getOrigGame currentGame) Nothing (isCheating currentGame) (getOrigGame currentGame)
+                      where newGameExtra = currentGame { hasWon = Nothing }
             AgentAction action -> makeAndShowNewGame
               where makeAndShowNewGame = do
                       case hasWon currentGame of
@@ -143,7 +143,9 @@ gamesLoop rootSurf graphics all@(gameListLists, (currentGameList, currentGame)) 
                       let hasWon' = case stepEffect of
                             GameWon b -> Just b
                             _ -> Nothing
-                      let newGame = GameExtra game' hasWon' (isCheating currentGame) (getOrigGame currentGame)
+                      let newGame = currentGame { getGame = game' 
+                                                , hasWon = hasWon'
+                                                }
                       case stepEffect of
                         NoChange -> return ()
                         NewGame -> renderInterpolated rootSurf graphics currentGame newGame posChanges
@@ -289,6 +291,11 @@ drawItemChars rootSurf graphics game = do
   textSurf <- SDLttf.renderTextSolid (getFont graphics) ("Items " ++ (getItemChars game)) $ SDL.Color 200 30 0
   SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 20 0 0
 
+drawGameName :: SDL.Surface -> Graphics -> String -> IO Bool
+drawGameName rootSurf graphics name = do
+  textSurf <- SDLttf.renderTextSolid (getFont graphics) name $ SDL.Color 0 130 30
+  SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 520 0 0
+
 blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO Bool
 blitFloor rootSurf graphics mapOffset = do
   SDL.blitSurface floorS Nothing rootSurf
@@ -311,6 +318,7 @@ render rootSurf graphics gameExtra = do
             then drawLight rootSurf graphics game mapOffset 
             else drawDarkness rootSurf graphics game mapOffset
           drawItemChars rootSurf graphics game
+          drawGameName rootSurf graphics $ getGameName gameExtra          
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
@@ -338,6 +346,7 @@ renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
             then drawLight rootSurf graphics (getGame oldGameExtra) mapOffset 
             else drawDarkness rootSurf graphics (getGame oldGameExtra) mapOffset
           drawItemChars rootSurf graphics game
+          drawGameName rootSurf graphics $ getGameName gameExtra
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)

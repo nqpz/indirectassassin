@@ -139,7 +139,7 @@ prepStill :: String -> IO SDL.Surface
 prepStill path = SDLi.load =<< getDataFileName path
 
 stillAni :: SDL.Surface -> Word32 -> SurfPart
-stillAni surf _ = (surf, SDL.Rect 0 0 (SDL.surfaceGetWidth surf) (SDL.surfaceGetHeight surf))
+stillAni surf _ = (surf, SDL.Rect 0 0 0 0)
 
 
 type AnimationInfo = (SDL.Surface, Int, Int, Int, Int, Int, Int)
