@@ -65,9 +65,9 @@ download and install Haskell SDL bindings:
 
 Once this is done, run (from the root directory of the extracted tarball):
 
-    runhaskell Setup.lhs configure
-    runhaskell Setup.lhs build
-    runhaskell Setup.lhs install
+    runhaskell Setup.hs configure
+    runhaskell Setup.hs build
+    runhaskell Setup.hs install
 
 and the game should be installed.
 
@@ -185,12 +185,13 @@ Some items are good for the professors, some are bad. None of them affect you.
 
 If a professor enters a tile with...
 
-* barrels, he empties the barrels and turns around.
+* barrels, he will walk towards other professors.
 * buckets, he drinks water and figures out how to extend his flashlight light
   distance two tiles more for 6 turns.
 * a yellow bat, he becomes a zombie soldier for 4 turns.
 * a green bee, he dies instantly.
-* a diamond, he becomes rich and turns around.
+* a diamond, he becomes rich and chooses the opposite direction of what he
+  would normally choose when he hits a corner (if he moves at all).
 * a tomato, he turns into a normal (not zombie) soldier for 7 turns.
 * an ice shield, he becomes unable to pick up new items for 3 turns, and
   instead destroys them instantly when touching them.
@@ -201,7 +202,14 @@ move towards you. Such a soldier is not very smart, so a wall is enough to stop
 him; he will not try to walk a different route.
 
 If a professor is a zombie soldier, he will kill not only you, but also other
-professors (if he sees them).
+professors (if he sees them). Zombie professors cannot kill them themselves.
+
+Fortunately, most professors move around in the dungeon. If no professors move
+on a map, you cannot win on that map, as you cannot make them pick up
+items. Zombifying a professor is the only way to kill non-moving professors.
+
+These rules are not perfectly clear. The code determines the correct
+interpretation (see Logic.hs).
 
 
 #### Maps

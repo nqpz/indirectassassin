@@ -47,25 +47,6 @@ fillSurf :: Word32 -> SDL.Surface -> IO Bool
 fillSurf color surf = SDL.fillRect surf Nothing $ SDL.Pixel color
 
 
-data Graphics = Graphics { getFloor :: SDL.Surface
-                         , getWall :: SDL.Surface
-                         , getFont :: SDLttf.Font
-                         , getAgent :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getProfessor :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getSoldierNormal :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getSoldierZombie :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getBarrels :: Word32 -> Word32 -> SurfPart
-                         , getBuckets :: Word32 -> Word32 -> SurfPart
-                         , getBat :: Word32 -> Word32 -> SurfPart
-                         , getBee :: Word32 -> Word32 -> SurfPart
-                         , getDiamond :: Word32 -> Word32 -> SurfPart
-                         , getTomato :: Word32 -> Word32 -> SurfPart
-                         , getIceShield :: Word32 -> Word32 -> SurfPart
-                         , getToilet :: Word32 -> Word32 -> SurfPart
-                         , getLightingSurf :: Lighting -> SDL.Surface
-                         -- , getBackgroundMusic :: SDLmix.Music
-                         }
-
 getGraphics :: IO Graphics
 getGraphics = do
   floorSurf <- prepStill "data/floor.png"
@@ -96,8 +77,8 @@ getGraphics = do
   flashlightSurf <- createSurf 64 64
   nightVisionSurf <- createSurf 64 64
   fillSurf 0x000000ff darknessSurf
-  fillSurf 0xfff22477 flashlightSurf
-  fillSurf 0x0000ff77 nightVisionSurf
+  fillSurf 0xfff22455 flashlightSurf
+  fillSurf 0x0000ff55 nightVisionSurf
   
   -- bgMusPath <- getDataFileName "data/sound/background_music.ogg"
   -- backgroundMusic <- SDLmix.loadMUS bgMusPath

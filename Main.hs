@@ -2,6 +2,7 @@ module Main (main) where
 
 -- Global
 import System.Environment
+import Paths_IndirectAssassin (getDataFileName)
 -- Local
 import IndirectAssassin.Misc
 import IndirectAssassin.Map (loadGameMap)
@@ -10,9 +11,12 @@ import IndirectAssassin.GameRunner
 main :: IO ()
 main = do
   args <- getArgs
+  incMaps <- outM $ map (\s -> getDataFileName ("data/maps/" ++ s)) includedMaps
   if ["--help", "-h"] `anyelem` args
     then printHelp
-    else runGames =<< (outM $ map loadGameMap args)
+    else runGames =<< (outM $ map loadGameMap (args ++ incMaps))
+
+includedMaps = ["map0.map"]
 
 printHelp :: IO ()
 printHelp = do

@@ -21,6 +21,7 @@ Data-Files:   data/floor.png data/wall.png data/embosst1.ttf
               data/item/bee_green.png data/item/diamond.png
               data/item/ice_shield.png data/item/tomato.png
               data/item/toilet.png
+              data/maps/map0.map
               README.txt COPYING.txt AUTHORS.txt CHANGELOG.txt BUGS.txt
               artistic-license-2.0.txt cc0-1.0.txt cc-by-sa-3.0.txt gpl-3.0.txt
 

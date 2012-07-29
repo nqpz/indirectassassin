@@ -217,12 +217,12 @@ drawItems surf graphics game mapOffset = outM [ blitItem pos item | (pos, Item i
             $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) (snd mapOffset + y * 64 + snd offset) (SDL.rectW itemRect) (SDL.rectH itemRect)
   
 drawProfessors :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> Map.Map Position Position -> Int -> IO [Bool]
-drawProfessors surf graphics game mapOffset posChanges i = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
+drawProfessors surf graphics game mapOffset posChanges i = outM [ blitProf dir pos $ map fst items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
   where blitProf :: Direction -> Position -> [Item] -> IO Bool 
         blitProf dir pos@(x, y) items = do
           fn <- getFrameNumber
           fps <- getFPS
-          let sprite = profSprite graphics dir pos $ map fst items
+          let sprite = profSprite graphics dir pos items
           let ((profSurf, profRect), offset) = maybe (snd sprite, (0, 0))
                                                  (\op -> (((fst sprite) (fn `rem` fps) fps),
                                                           (-((7 - i) + 1) * 8, -((7 - i) + 1) * 8) * calcOffset dir))
@@ -231,10 +231,10 @@ drawProfessors surf graphics game mapOffset posChanges i = outM [ blitProf dir p
             $ Just $ SDL.Rect (fst mapOffset + x * 64 + fst offset) (snd mapOffset + y * 64 + snd offset) 64 64
         
 drawProfessorsStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO [Bool]
-drawProfessorsStill surf graphics game mapOffset = outM [ blitProf dir pos items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
+drawProfessorsStill surf graphics game mapOffset = outM [ blitProf dir pos $ map fst items | (pos, Professor dir items) <- filter (isProfessor . snd) $ Map.toList game ]
   where blitProf :: Direction -> Position -> [Item] -> IO Bool 
         blitProf dir pos@(x, y) items = do
-          let (profSurf, profRect) = snd $ profSprite graphics dir pos $ map fst items
+          let (profSurf, profRect) = snd $ profSprite graphics dir pos items
           SDL.blitSurface profSurf (Just profRect) surf
             $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
 
@@ -252,7 +252,7 @@ drawAgent surf graphics game mapOffset posChanges i = do
     
 drawAgentStill :: SDL.Surface -> Graphics -> Game -> (Int, Int) -> IO Bool
 drawAgentStill surf graphics game mapOffset = do
-  let ((x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
+  let (pos@(x, y), Agent dir items) = head $ filter (isAgent . snd) $ Map.toList game
   let (agentSurf, agentRect) = snd $ (getAgent graphics) dir
   SDL.blitSurface agentSurf (Just agentRect) surf
     $ Just $ SDL.Rect (fst mapOffset + x * 64) (snd mapOffset + y * 64) 64 64
@@ -284,7 +284,7 @@ drawLight surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0..1
                                             y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting
 
 getItemChars :: Game -> [Char]
-getItemChars game = map (fromJust . itemToChar) $ getItems $ snd $ getGameAgent game
+getItemChars game = map (fromJust . itemToChar) $ getAgentItems $ snd $ getGameAgent game
 
 drawItemChars :: SDL.Surface -> Graphics -> Game -> IO Bool
 drawItemChars rootSurf graphics game = do

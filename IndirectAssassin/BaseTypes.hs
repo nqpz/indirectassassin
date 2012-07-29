@@ -26,6 +26,11 @@ import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import Data.Char
+import Data.Word
+import qualified Graphics.UI.SDL as SDL
+import qualified Graphics.UI.SDL.Image as SDLi
+import qualified Graphics.UI.SDL.TTF as SDLttf
+import qualified Graphics.UI.SDL.Mixer as SDLmix
 -- Local
 import IndirectAssassin.Misc
 
@@ -92,7 +97,7 @@ data Cell = Wall
                       , getItems :: [(Item, Int)]
                       }
           | Agent  { getDirection :: Direction 
-                   , getItems :: [Item]
+                   , getAgentItems :: [Item]
                    }
           | Item { getItem :: Item
                  }
@@ -158,3 +163,23 @@ calcOffset Up    = (0, -1)
 calcOffset Left  = (-1, 0)
 calcOffset Down  = (0, 1)
 calcOffset Right = (1, 0)
+
+data Graphics = Graphics { getFloor :: SDL.Surface
+                         , getWall :: SDL.Surface
+                         , getFont :: SDLttf.Font
+                         , getAgent :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
+                         , getProfessor :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
+                         , getSoldierNormal :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
+                         , getSoldierZombie :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
+                         , getBarrels :: Word32 -> Word32 -> SurfPart
+                         , getBuckets :: Word32 -> Word32 -> SurfPart
+                         , getBat :: Word32 -> Word32 -> SurfPart
+                         , getBee :: Word32 -> Word32 -> SurfPart
+                         , getDiamond :: Word32 -> Word32 -> SurfPart
+                         , getTomato :: Word32 -> Word32 -> SurfPart
+                         , getIceShield :: Word32 -> Word32 -> SurfPart
+                         , getToilet :: Word32 -> Word32 -> SurfPart
+                         , getLightingSurf :: Lighting -> SDL.Surface
+                         -- , getBackgroundMusic :: SDLmix.Music
+                         }
+
