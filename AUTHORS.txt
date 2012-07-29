@@ -36,11 +36,6 @@ From LPC 2012. Skyler Robert Colladay's "Feral Fantom's Entry".
 From LPC 2012. Edited version of Matthew Nash's "Public Toilet Tileset".
 
 
-### data/sound/branch-break.flac
-
-From LPC 2012. Johnathan Roatch's "Miscellaneous SFX".
-
-
 ### data/item/tomato.png
 
 From LPC 2012. Johann Charlot's "Shoot'em up graphic kit". Also available under

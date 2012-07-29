@@ -1,4 +1,24 @@
- module IndirectAssassin.GameRunner where
+{--
+Indirect Assassin: a turn-based stealth game
+Copyright (C) 2012  Niels G. W. Serup
+
+This file is part of Indirect Assassin.
+
+Indirect Assassin is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Indirect Assassin is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+Indirect Assassin.  If not, see <http://www.gnu.org/licenses/>.
+--}
+
+module IndirectAssassin.GameRunner where
 
  -- Global
 import Prelude hiding (Right, Left)
@@ -10,6 +30,7 @@ import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import qualified Graphics.UI.SDL.TTF as SDLttf
+import qualified Graphics.UI.SDL.Mixer as SDLmix
 import Graphics.UI.SDL.Keysym
 import Control.Concurrent (threadDelay)
 import System.IO.Unsafe (unsafePerformIO)
@@ -78,6 +99,8 @@ runGames games = do
   SDL.setCaption "Indirect Assassin" "indirectassassin"
 
   graphics <- getGraphics
+  -- print (getBackgroundMusic graphics)
+  -- SDLmix.playMusic (getBackgroundMusic graphics) 2
   screenSurf <- SDL.getVideoSurface
   let gameLists = map (\game -> createInfCenterList [GameExtra game Nothing False game]) games
   let (gameListLists, (currentGameList, currentGame)) = createInfCenterList gameLists
@@ -86,8 +109,8 @@ runGames games = do
   gamesLoop screenSurf graphics (gameListLists, (currentGameList, currentGame))
   putStrLn "End."
   closeGraphics graphics
-  SDL.quit
   SDLttf.quit
+  SDL.quit
 
 
 gamesLoop :: SDL.Surface -> Graphics -> (CenterList (CenterList GameExtra, GameExtra), (CenterList GameExtra, GameExtra)) -> IO ()
@@ -233,6 +256,14 @@ drawLight surf graphics game mapOffset = outM [ blitLighting (x, y) | x <- [0..1
                               $ Map.lookup (x - (floor $ fromIntegral (fst mapOffset) / 64), 
                                             y - (floor $ fromIntegral (snd mapOffset) / 64)) lighting
 
+getItemChars :: Game -> [Char]
+getItemChars game = map (fromJust . itemToChar) $ getItems $ snd $ getGameAgent game
+
+drawItemChars :: SDL.Surface -> Graphics -> Game -> IO Bool
+drawItemChars rootSurf graphics game = do
+  textSurf <- SDLttf.renderTextSolid (getFont graphics) ("Items " ++ (getItemChars game)) $ SDL.Color 200 30 0
+  SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 20 0 0
+
 blitFloor :: SDL.Surface -> Graphics -> (Int, Int) -> IO Bool
 blitFloor rootSurf graphics mapOffset = do
   SDL.blitSurface floorS Nothing rootSurf
@@ -254,6 +285,7 @@ render rootSurf graphics gameExtra = do
           if cheat 
             then drawLight rootSurf graphics game mapOffset 
             else drawDarkness rootSurf graphics game mapOffset
+          drawItemChars rootSurf graphics game
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)
@@ -280,6 +312,7 @@ renderInterpolated rootSurf graphics oldGameExtra gameExtra posChanges = do
           if cheat 
             then drawLight rootSurf graphics (getGame oldGameExtra) mapOffset 
             else drawDarkness rootSurf graphics (getGame oldGameExtra) mapOffset
+          drawItemChars rootSurf graphics game
           SDL.flip rootSurf
           waitForNextFrame
           where (game, cheat) = (getGame gameExtra, isCheating gameExtra)

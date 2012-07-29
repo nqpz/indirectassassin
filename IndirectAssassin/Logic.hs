@@ -1,3 +1,23 @@
+{--
+Indirect Assassin: a turn-based stealth game
+Copyright (C) 2012  Niels G. W. Serup
+
+This file is part of Indirect Assassin.
+
+Indirect Assassin is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Indirect Assassin is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+Indirect Assassin.  If not, see <http://www.gnu.org/licenses/>.
+--}
+
 module IndirectAssassin.Logic where
 
 -- Global
@@ -54,7 +74,7 @@ profNextDirPos game dir pos items | not $ [isEmpty, isItem] `anytrue` cellAt gam
         turnAt = liftM getTurnDirection $ find isTurnDirection items
 
 profIsDead :: Direction -> Position -> [Item] -> Bool
-profIsDead dir (x, y) items = Tomato `elem` items
+profIsDead dir (x, y) items = GreenBee `elem` items
 
 gameOverWon :: Game -> Maybe Bool
 gameOverWon game = if null $ filter (\(pos, c) -> isProfessor c && (not $ profIsDead (getDirection c) pos (getItems c))) $ Map.toList game

@@ -46,16 +46,20 @@ Installation
 ------------
 
 Indirect Assassin is written in Haskell. It should work with not-too-old
-versions of the Glasgow Haskell Compiler (GHC). Indirect Assassin also uses the
-Haskell SDL library.
+versions of the Glasgow Haskell Compiler (GHC). Indirect Assassin depends on
+SDL.
 
 Indirect Assassin has only been tested on GNU/Linux, but it should also run on
 other systems such as MS Windows or Apple Mac.
 
-You can download GHC and the Haskell Platform from
-http://hackage.haskell.org/platform/ --- once you have downloaded and installed
-those, you can use a newly installed program, "cabal", to download and install
-Haskell SDL bindings:
+First, install the development packages of SDL, SDL-image, SDL-mixer, and
+SDL-ttf. If you have a package manager, you can use that; else, download and
+install from http://www.libsdl.org/
+
+Next, install Haskell's SDL library. You can download GHC and the Haskell
+Platform from http://hackage.haskell.org/platform/ --- once you have downloaded
+and installed those, you can use a newly installed program, "cabal", to
+download and install Haskell SDL bindings:
 
     cabal install sdl sdl-image sdl-mixer sdl-ttf missingh
 
@@ -150,7 +154,8 @@ If you manage to kill (indirectly, of course) all the professors on a map, you
 win. To indirectly kill a professor, you must pick up dangerous items and place
 them so that the professors stumble upon them, and remove good items, so that
 professors don't stumble over them. There are several types of items, and they
-affect the professors in different ways.
+affect the professors in different ways. To pick up an item, just enter its
+tile.
 
 An important part of playing on any map is thus to figure out how many
 professors exist and which items are available. Unless the cheat mode is used,
@@ -159,18 +164,30 @@ this process requires luck.
 
 #### Items
 
-There are 7 items:
+There are 8 items, each with its own item key:
 
-* Barrels
-* Buckets
-* Yellow bat
-* Green bee
-* Diamond
-* Tomato
-* Ice shield
+* Barrels: A
+* Buckets: U
+* Yellow bat: E
+* Green bee: R
+* Diamond: I
+* Tomato: O
+* Ice shield: C
+* Toilet: L
 
-Note that the game does not remind you which items you currently possess;
-you'll have to remember that yourself.
+The game reminds you which items you currently possess by printing a string of
+item keys.
+
+
+##### Properties
+
+Some items are good for the professors, some are bad. None of them affect you.
+
+If a professor picks up a green bee, he dies instantly.
+
+If a professor picks up a toilet, he doesn't move for 5 turns.
+
+If a professor picks up a yellow bat, he becomes a zombie soldier for 4 turns.
 
 
 #### Maps

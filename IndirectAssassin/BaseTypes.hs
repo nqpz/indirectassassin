@@ -1,3 +1,23 @@
+{--
+Indirect Assassin: a turn-based stealth game
+Copyright (C) 2012  Niels G. W. Serup
+
+This file is part of Indirect Assassin.
+
+Indirect Assassin is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Indirect Assassin is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+Indirect Assassin.  If not, see <http://www.gnu.org/licenses/>.
+--}
+
 module IndirectAssassin.BaseTypes where
 
 -- Global
@@ -57,9 +77,10 @@ data Item = Barrels   -- A
           | Diamond   -- I
           | Tomato    -- O
           | IceShield -- C
+          | Toilet    -- L
           | TurnAtWall { getTurnDirection :: Direction
                        }
-          deriving (Show, Eq)
+          deriving (Show, Eq, Ord)
 
 isTurnDirection :: Item -> Bool
 isTurnDirection (TurnAtWall _) = True

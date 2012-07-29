@@ -1,5 +1,25 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 
+{--
+Indirect Assassin: a turn-based stealth game
+Copyright (C) 2012  Niels G. W. Serup
+
+This file is part of Indirect Assassin.
+
+Indirect Assassin is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Indirect Assassin is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+Indirect Assassin.  If not, see <http://www.gnu.org/licenses/>.
+--}
+
 module IndirectAssassin.Map where
 
 -- Global
@@ -12,15 +32,11 @@ import qualified Data.Map as Map
 import IndirectAssassin.BaseTypes
 import IndirectAssassin.Misc
 
-charToItem :: Char -> Maybe Item
-charToItem 'A' = Just Barrels
-charToItem 'U' = Just Buckets
-charToItem 'E' = Just YellowBat
-charToItem 'R' = Just GreenBee
-charToItem 'I' = Just Diamond
-charToItem 'O' = Just Tomato
-charToItem 'C' = Just IceShield
-charToItem _   = Nothing
+(charToItem, itemToChar) = (lookupOn alist, lookupOn $ map (\(a, b) -> (b, a)) alist)
+  where alist = [('A', Barrels), ('U', Buckets), ('E', GreenBee),
+                 ('I', Diamond), ('O', Tomato), ('C', IceShield),
+                 ('L', Toilet)]
+        lookupOn alist x = Map.lookup x $ Map.fromList alist
 
 stringToItem :: String -> Item
 stringToItem ('t':'u':'r':'n':'-':cs) = TurnAtWall $ stringToDirection cs

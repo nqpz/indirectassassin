@@ -20,6 +20,8 @@ Data-Files:   data/floor.png data/wall.png data/embosst1.ttf
               data/item/buckets.png data/item/bat_yellow.png
               data/item/bee_green.png data/item/diamond.png
               data/item/ice_shield.png data/item/tomato.png
+              data/item/toilet.png
+              data/sound/background_music.ogg
 
 Executable indirectassassin
     Main-is: Main.hs

@@ -1,3 +1,23 @@
+{--
+Indirect Assassin: a turn-based stealth game
+Copyright (C) 2012  Niels G. W. Serup
+
+This file is part of Indirect Assassin.
+
+Indirect Assassin is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Indirect Assassin is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+Indirect Assassin.  If not, see <http://www.gnu.org/licenses/>.
+--}
+
 module IndirectAssassin.Graphics where
 
 -- Global
@@ -9,6 +29,7 @@ import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import qualified Graphics.UI.SDL.TTF as SDLttf
+import qualified Graphics.UI.SDL.Mixer as SDLmix
 import Paths_IndirectAssassin (getDataFileName)
 -- Local
 import IndirectAssassin.Misc
@@ -40,7 +61,9 @@ data Graphics = Graphics { getFloor :: SDL.Surface
                          , getDiamond :: Word32 -> Word32 -> SurfPart
                          , getTomato :: Word32 -> Word32 -> SurfPart
                          , getIceShield :: Word32 -> Word32 -> SurfPart
+                         , getToilet :: Word32 -> Word32 -> SurfPart
                          , getLightingSurf :: Lighting -> SDL.Surface
+                         , getBackgroundMusic :: SDLmix.Music
                          }
 
 getGraphics :: IO Graphics
@@ -67,6 +90,7 @@ getGraphics = do
   diamond <- prepAni 4 1 120 "data/item/diamond.png"
   tomato <- prepAni 16 2 40 "data/item/tomato.png"
   iceShield <- prepAni 4 4 60 "data/item/ice_shield.png"
+  toilet <- prepStill "data/item/toilet.png"
   
   darknessSurf <- createSurf 64 64
   flashlightSurf <- createSurf 64 64
@@ -75,6 +99,8 @@ getGraphics = do
   fillSurf 0xfff22477 flashlightSurf
   fillSurf 0x0000ff77 nightVisionSurf
   
+  bgMusPath <- getDataFileName "data/sound/background_music.ogg"
+  backgroundMusic <- SDLmix.loadMUS bgMusPath
   
   return $ Graphics fullFloor wallSurf font
     (dirExpand (walkcycle agentCycle, standStill agentCycle))
@@ -83,9 +109,11 @@ getGraphics = do
     (dirExpand (walkcycle soldierZombieCycle, standStill soldierZombieCycle))
     (stillAni barrels) (stillAni buckets) (animation bat) (animation bee)
     (animation diamond) (animation tomato) (animation iceShield)
+    (stillAni toilet)
     (\l -> case l of Darkness -> darknessSurf
                      Flashlight -> flashlightSurf
                      NightVision -> nightVisionSurf)
+    backgroundMusic
   where dirExpand (ani, still) direc = (ani direc, still direc)
         
 itemToImage :: Graphics -> Item -> Word32 -> Word32 -> SurfPart
@@ -97,6 +125,7 @@ itemToImage g i = (\f -> f g) $ case i of
   Diamond   -> getDiamond
   Tomato    -> getTomato
   IceShield -> getIceShield
+  Toilet    -> getToilet
         
 closeGraphics :: Graphics -> IO ()
 closeGraphics graphics = do
@@ -114,6 +143,7 @@ closeGraphics graphics = do
   freeAni getDiamond
   freeAni getTomato
   freeAni getIceShield
+  SDLmix.freeMusic $ getBackgroundMusic graphics
   where freeCycle f = SDL.freeSurface $ fst $ snd $ f graphics Up
         freeAni f   = SDL.freeSurface $ fst $ f graphics 0 1
 
