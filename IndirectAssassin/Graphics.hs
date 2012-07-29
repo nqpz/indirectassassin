@@ -66,11 +66,11 @@ getGraphics = do
   
   barrels <- prepStill "data/item/barrels.png"
   buckets <- prepStill "data/item/buckets.png"
-  bat <- prepAni 3 4 80 "data/item/bat_yellow.png"
-  bee <- prepAni 3 4 80 "data/item/bee_green.png"
+  bat <- prepAni 3 4 100 "data/item/bat_yellow.png"
+  bee <- prepAni 3 4 100 "data/item/bee_green.png"
   diamond <- prepAni 4 1 120 "data/item/diamond.png"
   tomato <- prepAni 16 2 40 "data/item/tomato.png"
-  iceShield <- prepAni 4 4 60 "data/item/ice_shield.png"
+  iceShield <- prepAni 4 4 100 "data/item/ice_shield.png"
   toilet <- prepStill "data/item/toilet.png"
   
   darknessSurf <- createSurf 64 64
@@ -97,7 +97,7 @@ getGraphics = do
     -- backgroundMusic
   where dirExpand (ani, still) direc = (ani direc, still direc)
         
-itemToImage :: Graphics -> Item -> Word32 -> Word32 -> SurfPart
+itemToImage :: Graphics -> Item -> Word32 -> SurfPart
 itemToImage g i = (\f -> f g) $ case i of
   Barrels   -> getBarrels
   Buckets   -> getBuckets
@@ -126,7 +126,7 @@ closeGraphics graphics = do
   freeAni getIceShield
   -- SDLmix.freeMusic $ getBackgroundMusic graphics
   where freeCycle f = SDL.freeSurface $ fst $ snd $ f graphics Up
-        freeAni f   = SDL.freeSurface $ fst $ f graphics 0 1
+        freeAni f   = SDL.freeSurface $ fst $ f graphics 1
 
 drawFloor :: SDL.Surface -> SDL.Surface -> IO [Bool]
 drawFloor floorSurf destSurf = outM [ blitFloor (x, y) | x <- [0..ceiling $ fromIntegral width / 96 + fromIntegral 2], y <- [0..ceiling $ fromIntegral height / 32] ]
@@ -138,14 +138,14 @@ drawFloor floorSurf destSurf = outM [ blitFloor (x, y) | x <- [0..ceiling $ from
 prepStill :: String -> IO SDL.Surface
 prepStill path = SDLi.load =<< getDataFileName path
 
-stillAni :: SDL.Surface -> Word32 -> Word32 -> SurfPart
-stillAni surf _ _ = (surf, SDL.Rect 0 0 (SDL.surfaceGetWidth surf) (SDL.surfaceGetHeight surf))
+stillAni :: SDL.Surface -> Word32 -> SurfPart
+stillAni surf _ = (surf, SDL.Rect 0 0 (SDL.surfaceGetWidth surf) (SDL.surfaceGetHeight surf))
 
 
-type AnimationInfo = (SDL.Surface, Int, Int, Int, Int, Int)
-animation :: AnimationInfo -> Word32 -> Word32 -> SurfPart
-animation (surf, tileW, tileH, oneDir, xTiles, yTiles) i fps = (surf, rect)
-  where n = floor $ fromIntegral oneDir * fromIntegral i / fromIntegral fps
+type AnimationInfo = (SDL.Surface, Int, Int, Int, Int, Int, Int)
+animation :: AnimationInfo -> Word32 -> SurfPart
+animation (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) t = (surf, rect)
+  where n = floor (fromIntegral t / fromIntegral frameDur) `rem` oneDir
         (x, y) = (n `rem` xTiles, floor $ fromIntegral n / fromIntegral xTiles)
         rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
 
@@ -156,13 +156,13 @@ prepAni xTiles yTiles frameDur path = do
   let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
   let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, floor $ fromIntegral h / fromIntegral yTiles)
   let oneDir = floor $ fromIntegral xTiles * fromIntegral yTiles
-  return (surf, tileW, tileH, oneDir, xTiles, yTiles)
+  return (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles)
 
 
-walkcycle :: AnimationInfo -> Direction -> Word32 -> Word32 -> SurfPart
-walkcycle (surf, tileW, tileH, oneDir, xTiles, yTiles) direc i fps = (surf, rect)
+walkcycle :: AnimationInfo -> Direction -> Word32 -> SurfPart
+walkcycle (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) direc t = (surf, rect)
   where nOffset = oneDir * fromEnum direc
-        n = nOffset + (floor $ fromIntegral (oneDir - 1) * fromIntegral i / fromIntegral fps) + 1
+        n = 1 + nOffset + floor (fromIntegral t / fromIntegral frameDur) `rem` (oneDir - 1)
         (x, y) = (n `rem` (xTiles - 1), floor $ fromIntegral n / fromIntegral xTiles)
         rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
 
@@ -173,7 +173,7 @@ prepWalkcycle xTiles yTiles frameDur path = do
           let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
           let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, floor $ fromIntegral h / fromIntegral yTiles)
           let oneDir = floor $ fromIntegral xTiles * fromIntegral yTiles / 4
-          return (surf, tileW, tileH, oneDir, xTiles, yTiles)
+          return (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles)
 
 standStill :: AnimationInfo -> Direction -> SurfPart
-standStill (surf, _, _, _, _, _) direc = (surf, SDL.Rect 0 (64 * fromEnum direc) 64 64)
+standStill (surf, _, _, _, _, _, _) direc = (surf, SDL.Rect 0 (64 * fromEnum direc) 64 64)

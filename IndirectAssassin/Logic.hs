@@ -78,7 +78,7 @@ profLightLength :: Direction -> Position -> [Item] -> Int
 profLightLength dir (x, y) items | Buckets `elem` items = 5
                                  | otherwise = 3
 
-profSprite :: Graphics -> Direction -> Position -> [Item] -> (Word32 -> Word32 -> SurfPart, SurfPart)
+profSprite :: Graphics -> Direction -> Position -> [Item] -> (Word32 -> SurfPart, SurfPart)
 profSprite g dir (x, y) items | YellowBat `elem` items = getSoldierZombie g dir
                               | Tomato `elem` items = getSoldierNormal g dir
                               | otherwise = getProfessor g dir

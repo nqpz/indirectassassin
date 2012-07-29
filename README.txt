@@ -27,6 +27,18 @@ Copyright
 See the file COPYRIGHT.txt
 
 
+Changelog
+---------
+
+See the file CHANGELOG.txt
+
+
+Bugs
+----
+
+See the file BUGS.txt
+
+
 Version
 -------
 
@@ -191,7 +203,7 @@ If a professor enters a tile with...
 * a yellow bat, he becomes a zombie soldier for 4 turns.
 * a green bee, he dies instantly.
 * a diamond, he becomes rich and chooses the opposite direction of what he
-  would normally choose when he hits a corner (if he moves at all).
+  would normally choose when he hits a wall (if he moves at all).
 * a tomato, he turns into a normal (not zombie) soldier for 7 turns.
 * an ice shield, he becomes unable to pick up new items for 3 turns, and
   instead destroys them instantly when touching them.
@@ -226,12 +238,49 @@ your own maps.
 A small map might look like this:
 
     #####
-    #!b #
+    #!O #
     #  x#
     #####
 
-[EXPLAIN]
+    ! down
+    x up turn-down
 
+Here # = wall, ! = The Agent, O = a toilet, and x = a professor. The lines
+after the double-line specifies data about The Agent and the professors on the
+map. These lines must be present. The word after the first space describes
+which direction the person should point when the game begins. The subsequent
+words describe which items the person should start with. The 'turn-down' item
+is a special item which makes professors walk, and turn right (or left, if they
+have an unequal number of diamonds) when they hit a wall.
+
+There are currently four special items (future versions of this game are likely
+to contain more): turn-up, turn-left, turn-down, and turn-right. If no such
+special item is given to a professor, the professor does not move. The Agent
+has no use for these special items and will ignore them if given to him.
+
+* A map file consists of a map, then two newlines, then line-separated extra
+  data about the map's professors and agent. This implies that the map may not
+  contain two newlines after each other.
+* To place a piece of a wall in a map, use a '#'.
+* To place an item in a map, use its key in uppercase.
+* To place The Agent, use an '!'.
+* To place a professor, use a symbol which is not in the string '#!AUERIOCL'.
+* The directions must be lowercased.
+* An item is either turn-<direction> or <item key>
+
+Maps need not be square and simple; here is a larger example:
+
+    ######  ####
+    #0    ##   1#
+    ##     O   #
+     #### E   #
+       #  !  #
+       #  R  #
+       #######
+
+    0 right turn-right
+    1 left turn-left
+    ! left E R
 
 #### Keys to remember
 

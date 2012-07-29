@@ -127,9 +127,9 @@ data Lighting = Darkness | Flashlight | NightVision
               deriving (Show, Eq)
 
 (charToItem, itemToChar) = (lookupOn alist, lookupOn $ map (\(a, b) -> (b, a)) alist)
-  where alist = [('A', Barrels), ('U', Buckets), ('E', GreenBee),
+  where alist = [('A', Barrels), ('U', Buckets), ('R', GreenBee),
                  ('I', Diamond), ('O', Tomato), ('C', IceShield),
-                 ('L', Toilet)]
+                 ('L', Toilet), ('E', YellowBat)]
         lookupOn alist x = Map.lookup x $ Map.fromList alist
 
 stringToItem :: String -> Item
@@ -164,21 +164,24 @@ calcOffset Left  = (-1, 0)
 calcOffset Down  = (0, 1)
 calcOffset Right = (1, 0)
 
+type WalkcycleReady = Direction -> (Word32 -> SurfPart, SurfPart)
+type AnimationReady = Word32 -> SurfPart
+
 data Graphics = Graphics { getFloor :: SDL.Surface
                          , getWall :: SDL.Surface
                          , getFont :: SDLttf.Font
-                         , getAgent :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getProfessor :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getSoldierNormal :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getSoldierZombie :: Direction -> (Word32 -> Word32 -> SurfPart, SurfPart)
-                         , getBarrels :: Word32 -> Word32 -> SurfPart
-                         , getBuckets :: Word32 -> Word32 -> SurfPart
-                         , getBat :: Word32 -> Word32 -> SurfPart
-                         , getBee :: Word32 -> Word32 -> SurfPart
-                         , getDiamond :: Word32 -> Word32 -> SurfPart
-                         , getTomato :: Word32 -> Word32 -> SurfPart
-                         , getIceShield :: Word32 -> Word32 -> SurfPart
-                         , getToilet :: Word32 -> Word32 -> SurfPart
+                         , getAgent :: WalkcycleReady
+                         , getProfessor :: WalkcycleReady
+                         , getSoldierNormal :: WalkcycleReady
+                         , getSoldierZombie :: WalkcycleReady
+                         , getBarrels :: AnimationReady
+                         , getBuckets :: AnimationReady
+                         , getBat :: AnimationReady
+                         , getBee :: AnimationReady
+                         , getDiamond :: AnimationReady
+                         , getTomato :: AnimationReady
+                         , getIceShield :: AnimationReady
+                         , getToilet :: AnimationReady
                          , getLightingSurf :: Lighting -> SDL.Surface
                          -- , getBackgroundMusic :: SDLmix.Music
                          }

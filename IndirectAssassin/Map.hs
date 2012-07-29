@@ -51,7 +51,7 @@ parseGameMap cs = getMap top $ getMeta bottom
                 
                 getCell '#' = Wall
                 getCell ' ' = Empty
-                getCell c   = maybe (maybe (error "no such item") Item $ charToItem c) id $ Map.lookup c meta
+                getCell c   = maybe (maybe (error ("no such item: " ++ [c])) Item $ charToItem c) id $ Map.lookup c meta
 
 loadGameMap :: String -> IO Game
 loadGameMap filePath = do

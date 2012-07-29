@@ -4,8 +4,8 @@ Bugs and missing features
 These things will hopefully have been fixed in the next release.
 
 
-Sound
------
+Lack of sound
+-------------
 
 I couldn't get Haskell's SDL-mixer working. I tried on two different machines,
 and both gave me a floating point exception when trying to play an .ogg Vorbis
@@ -14,14 +14,14 @@ system which has incompatible libraries. Once I get around to updating my
 entire system, I'll report it if I still experience it.
 
 
-Movement
---------
+Stiff movement
+--------------
 
-Not all movement is as fluid as it can be.
+Not all movement is as fluid as it should be.
 
 
-Speed
------
+Lack of speed
+-------------
 
 Efficiency was not my goal with the 0.1.0 release, which should be obvious when
 running my game on a not-too-new computer. Since the code needs to be
@@ -37,3 +37,10 @@ never got around to fixing GameRunner.hs. For one thing, there's a lot of code
 duplication which is not nice. It would also be nice with some actual
 commenting of code. There's also a lot of lines where length line > 80. My
 separation of code into modules is also a bit arbitrary at times.
+
+
+Few maps
+--------
+
+This game needs more maps. Fortunately, the format is simple, and people can
+make their own maps.

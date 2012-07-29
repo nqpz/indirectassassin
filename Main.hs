@@ -16,7 +16,7 @@ main = do
     then printHelp
     else runGames =<< (outM $ map loadGameMap (args ++ incMaps))
 
-includedMaps = ["map0.map"]
+includedMaps = [ "map" ++ show i ++ ".map" | i <- [0..2] ]
 
 printHelp :: IO ()
 printHelp = do
