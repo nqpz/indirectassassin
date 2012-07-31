@@ -82,7 +82,7 @@ Once this is done, run (from the root directory of the extracted tarball):
     runhaskell Setup.hs build
     runhaskell Setup.hs install
 
-and the game should be installed.
+and the game should be installed. You can ignore the many warnings by GHC.
 
 
 ### With Cabal
