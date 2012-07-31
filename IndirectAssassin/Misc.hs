@@ -30,9 +30,6 @@ import Prelude hiding (Right, Left)
 (.<) n f v = (.<) (n - 1) f $ f v
 infixr 9 .<
 
-onPair :: (a -> b) -> (c -> d) -> (a, c) -> (b, d)
-onPair f g (a, b) = (f a, g b)
-
 anyelem :: Eq a => [a] -> [a] -> Bool
 anyelem xs ys = (\y -> y `elem` xs) `any` ys
 

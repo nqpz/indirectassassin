@@ -32,7 +32,7 @@ import Control.Monad
 import IndirectAssassin.BaseTypes
 import IndirectAssassin.Misc
 
-
+-- | <absolute direction> <relative direction> <position>
 nextDirPos :: Direction -> Direction -> Position -> (Direction, Position)
 nextDirPos Up rd (x, y) = (rd, p')
   where p' = case rd of
@@ -45,27 +45,31 @@ nextDirPos d rd p = nextDirPos (pred d) (succ rd) p
 
 step :: Game -> AgentAction -> (StepEffect, Game, Map.Map Position Position)
 step game action = case action of
-  UseItem item -> if (not $ item `elem` agentItems)
-                     || (not $ isEmpty $ cellAt game nextPos)
-                  then (NoChange, game, Map.empty)
-                  else runAI (Map.insert nextPos (Item item)
-                              (Map.insert agentPos
-                               (Agent agentDir 
-                                $ delete item agentItems) game)) 
-                       $ posChanges nextPos
-    where nextPos = snd $ nextDirPos agentDir Up agentPos
+  UseItem item -> useItem
+    where useItem | not ((item `elem` agentItems)
+                         && (isEmpty $ cellAt game nextPos)) = noChange
+                  | otherwise = runAI newGame $ posChanges nextPos
+          nextPos  = snd $ nextDirPos agentDir Up agentPos
+          newAgent = Agent agentDir $ delete item agentItems
+          newGame  = (Map.insert nextPos (Item item)
+                     (Map.insert agentPos newAgent game))
   Go nextDir -> case cellAt game nextPos of
-    Empty -> runAI (Map.insert nextPos (Agent nextDir agentItems) 
-                    $ Map.delete agentPos game) $ posChanges nextPos
-    Item item -> runAI (Map.insert nextPos (Agent nextDir (item : agentItems))
-                        $ Map.delete agentPos game) $ posChanges nextPos
-    Wall -> (NoChange, game, Map.empty)
-    Professor _ _ -> (GameWon False, game, Map.empty)
+    Empty -> withAgent agent { getDirection = nextDir }
+    Item item -> withAgent $ Agent nextDir (item : agentItems)
+    Wall -> noChange
+    Professor _ _ -> gameWon False
     where (_, nextPos) = nextDirPos nextDir Up agentPos
+          withAgent agent = runAI (Map.insert nextPos agent
+                                   $ Map.delete agentPos game)
+                            $ posChanges nextPos
   PassTurn -> runAI game Map.empty
-  where (agentPos, Agent agentDir agentItems) = head $ filter (isAgent . snd) 
-                                                $ Map.toList game
+  where (agentPos, agent@(Agent agentDir agentItems)) = getGameAgent game
         posChanges nextPos = (Map.insert nextPos agentPos Map.empty)
+        noChange  = (NoChange, game, Map.empty)
+        gameWon b = (GameWon b, game, Map.empty)
+
+getGameAgent :: Game -> (Position, Cell)
+getGameAgent game = head $ filter (isAgent . snd) $ Map.toList game
 
 profItemLast :: Item -> Int
 profItemLast Barrels   = 1
@@ -87,9 +91,10 @@ profLightLength dir (x, y) items | Buckets `elem` items = 5
 
 profSprite :: Graphics -> Direction -> Position -> [Item]
               -> (Word32 -> SurfPart, SurfPart)
-profSprite g dir (x, y) items | YellowBat `elem` items = getSoldierZombie g dir
-                              | Tomato `elem` items = getSoldierNormal g dir
-                              | otherwise = getProfessor g dir
+profSprite g dir (x, y) items = getSprite g dir
+  where getSprite | YellowBat `elem` items = getSoldierZombie
+                  | Tomato `elem` items = getSoldierNormal
+                  | otherwise = getProfessor
 
 profNextDirPos :: Game -> Direction -> Position -> [Item] -> Maybe StillVector
 profNextDirPos game dir pos@(x, y) items
@@ -138,13 +143,17 @@ getFlashlightTiles game = foldl' buildLight Map.empty
         build lightMap pos = Map.insert pos Flashlight lightMap
 
 getNightVisionTiles game = buildLight $ getGameAgent game
-  where buildLight (pos, Agent dir items) = foldl' build Map.empty 
-                                            $ lightFrom dir pos 3
+  where buildLight (pos, Agent dir _)
+          = foldl' build Map.empty $ lightFrom dir pos 3
         build lightMap pos = Map.insert pos NightVision lightMap
 
+unionApp :: (Ord k, Ord k1) => (Map.Map k a -> Map.Map k1 a1)
+            -> (Map.Map k a -> Map.Map k1 a1) 
+            -> Map.Map k a -> Map.Map k1 a1
+unionApp f g map = Map.union (f map) (g map)
+
 getLighting :: Game -> Map.Map Position Lighting
-getLighting game = Map.union (getFlashlightTiles game)
-                   (getNightVisionTiles game)
+getLighting = unionApp getFlashlightTiles getNightVisionTiles
 
 gameOverWon :: Game -> Maybe Bool
 gameOverWon game = maybe (Just True) (const elseExpr)
@@ -155,15 +164,14 @@ gameOverWon game = maybe (Just True) (const elseExpr)
         gameLost :: Bool
         gameLost = maybe False (== Flashlight) $ Map.lookup 
                    (fst $ getGameAgent game) (getLighting game)
-        elseExpr | gameLost = Just False 
+        elseExpr | gameLost = Just False
                  | otherwise = Nothing
-
 
 runAI :: Game -> Map.Map Position Position
          -> (StepEffect, Game, Map.Map Position Position)
-runAI game posChanges = whenNotOver game $ runAI' game
-  where runAI' game = whenNotOver (fst newGame)
-                      (NewGame, fst newGame, snd newGame)
+runAI game posChanges = whenNotOver game runAI'
+  where runAI' = whenNotOver (fst newGame)
+                 (NewGame, fst newGame, snd newGame)
         newGame :: (Game, Map.Map Position Position)
         newGame = foldl' buildNew (game, posChanges) $ Map.toList game
         buildNew (game, posChanges) (p, Professor dir items)
@@ -171,36 +179,32 @@ runAI game posChanges = whenNotOver game $ runAI' game
           | ndp == Nothing = nothingNew
           | otherwise = actOnNext ndp
           where isDead = profIsDead game dir p items'
+                items' = map fst items
                 ndp = profNextDirPos game dir p items'
                 actOnNext (Just (nextDir, nextPos)) = 
                   case cellAt game nextPos of
                     Empty -> fill []
-                    Item item -> if IceShield `elem` items'
-                                 then fill []
-                                 else fill [item]
-                    Wall -> withNewDir
-                    Professor _ _ -> nothingNew
-                    Agent _ _ -> nothingNew -- this line shouldn't be necessary
+                    Item item -> act
+                      where act | IceShield `elem` items' = fill []
+                                | otherwise = fill [item]
+                    _ -> withNewDir
                   where fill newItems = (Map.insert nextPos 
                                          (Professor nextDir itemsOldNew)
                                          $ Map.delete p game,
                                          Map.insert nextPos p posChanges)
                           where itemsOldNew = map itemWithLast newItems
                                               ++ (catMaybes $ map adjust items)
-                        withNewDir = (Map.insert p
-                                      (Professor nextDir (catMaybes
-                                                          $ map adjust items))
-                                      game, posChanges)
-                items' = map fst items
+                        withNewDir = (Map.insert p newProf game, posChanges)
+                        newProf = Professor nextDir (catMaybes 
+                                                     $ map adjust items)
                 nothingNew = (Map.insert p 
                               (Professor dir (catMaybes $ map adjust items)) 
                               game, posChanges)
         buildNew state _ = state
-        whenNotOver game f = maybe f (\b -> (GameWon b, game, posChanges)) 
+        whenNotOver game f = maybe f (\b -> (GameWon b, game, posChanges))
                              $ gameOverWon game
         adjust (item, 1) = Nothing
         adjust orig@(item, -1) = Just orig
         adjust (item, n) = Just (item, n - 1)
 
 
-getGameAgent game = head $ filter (isAgent . snd) $ Map.toList game

@@ -288,7 +288,7 @@ renderEndScreen :: SDL.Surface -> Graphics -> Bool -> IO ()
 renderEndScreen rootSurf graphics won = do
   fillSurf (if won then 0x000000ff else 0x00ff0000) rootSurf
   textSurf <- SDLttf.renderTextSolid (getFont graphics) (message won)
-              $ SDL.Color 0 0 0
+              $ SDL.Color 255 255 255
   SDL.blitSurface textSurf Nothing rootSurf $ Just $ SDL.Rect 20 20 0 0
   SDL.flip rootSurf
   waitForNextFrame

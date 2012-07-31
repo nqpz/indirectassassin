@@ -25,7 +25,7 @@ module IndirectAssassin.Map where
 -- Global
 import Prelude hiding (Right, Left)
 import Data.List (foldl')
-import qualified Data.List.Utils as U
+import Data.List.Utils (split)
 import Data.Maybe
 import qualified Data.Map as Map
 -- Local
@@ -35,10 +35,10 @@ import IndirectAssassin.Misc
 
 parseGameMap :: String -> (Game, String)
 parseGameMap cs = (getMap top'' $ getMeta bottom, top')
-  where top : bottom : _ = U.split "\n\n" cs
+  where top : bottom : _ = split "\n\n" cs
         (top', _ : top'') = break (=='\n') top
         getMeta = foldl' makeMeta Map.empty . map words . lines
-          where 
+          where
             makeMeta metaMap ([identifier] : direction : items)
               = Map.insert identifier (t (stringToDirection direction)
                                        $ map stringToItem items) metaMap
@@ -49,17 +49,15 @@ parseGameMap cs = (getMap top'' $ getMeta bottom, top')
         
         getMap top meta = snd $ foldl' build ((0, 0), Map.empty) top
           where build ((_, y), game) '\n' = ((0, y + 1), game)
-                build (p@(x, y), game) c  = ((x + 1, y), 
+                build (p@(x, y), game) c  = ((x + 1, y),
                                              Map.insert p (getCell c) game)
                 
                 getCell '#' = Wall
                 getCell ' ' = Empty
-                getCell c   = maybe (maybe (error ("no such item: " ++ [c])) 
+                getCell c   = maybe (maybe (error ("no such item: " ++ [c]))
                                      Item $ charToItem c) id $ Map.lookup c meta
 
 loadGameMap :: String -> IO (Game, String)
 loadGameMap filePath = do
   contents <- readFile filePath
   return $ parseGameMap contents
-
-
