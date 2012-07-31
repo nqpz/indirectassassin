@@ -1,4 +1,4 @@
-Cabal-Version: >= 1.2
+Cabal-Version: >= 1.6
 Name:         IndirectAssassin
 Version:      0.1.0
 Synopsis:     A turn-based stealth game
