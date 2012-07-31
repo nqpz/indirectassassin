@@ -16,7 +16,7 @@ main = do
   incMaps <- outM $ map (\s -> getDataFileName ("data/maps/" ++ s)) includedMaps
   if ["--help", "-h"] `anyelem` args
     then printHelp
-    else runGames =<< (outM $ map loadGameMap (args ++ incMaps))
+    else runGames =<< (outM $ map loadGameMap (incMaps ++ (reverse args)))
 
 includedMaps = [ "map" ++ show i ++ ".map" | i <- [0..nMaps - 1] ]
 
