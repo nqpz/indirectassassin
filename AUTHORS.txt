@@ -10,6 +10,16 @@ Code author
 Indirect Assassin is written by Niels G. W. Serup <ns@metanohi.name>.
 
 
+Maps author
+-----------
+
+### data/maps/*
+
+By Niels G. W. Serup. To the extent possible under law, Niels G. W. Serup has
+waived all copyright and related or neighboring rights to these maps; see the
+Creative Commons Zero 1.0 document for more information.
+
+
 Art authors
 -----------
 
