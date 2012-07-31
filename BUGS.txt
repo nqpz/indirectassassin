@@ -4,6 +4,12 @@ Bugs and missing features
 These things will hopefully have been fixed in the next release.
 
 
+Strong flashlights
+------------------
+
+Flashlights shine through walls.
+
+
 Stiff movement
 --------------
 
@@ -18,8 +24,8 @@ running my game on a not-too-new computer. Since the code needs to be
 refactored anyway, making it more efficient could be done at the same time.
 
 
-Code cleanup
-------------
+Ugly code
+---------
 
 I consider it a bug that GameRunner.hs is so ugly. This is my first real
 Haskell program, and I found Logic.hs more interesting to work on, meaning I

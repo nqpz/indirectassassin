@@ -25,6 +25,7 @@ Data-Files:   data/floor.png data/wall.png data/embosst1.ttf
               data/maps/map1.map
               data/maps/map2.map
               data/maps/map3.map
+              data/maps/map4.map
               README.txt COPYING.txt AUTHORS.txt CHANGELOG.txt BUGS.txt
               artistic-license-2.0.txt cc0-1.0.txt cc-by-sa-3.0.txt gpl-3.0.txt
 

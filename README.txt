@@ -194,21 +194,22 @@ item keys.
 
 ##### Properties
 
-Some items are good for the professors, some are bad. None of them affect you.
+Some items are good for the professors, some are bad. None of them affect you
+when you just carry them.
 
 If a professor enters a tile with...
 
-* barrels, he will walk towards other professors.
-* buckets, he drinks water and figures out how to extend his flashlight light
-  distance two tiles more for 6 turns.
-* a yellow bat, he becomes a zombie soldier for 4 turns.
-* a green bee, he dies instantly.
-* a diamond, he becomes rich and chooses the opposite direction of what he
+* barrels (A), he will walk towards other professors.
+* buckets (U), he drinks water and figures out how to extend his flashlight
+  light distance two tiles more for 6 turns.
+* a yellow bat (E), he becomes a zombie soldier for 4 turns.
+* a green bee (R), he dies instantly.
+* a diamond (I), he becomes rich and chooses the opposite direction of what he
   would normally choose when he hits a wall (if he moves at all).
-* a tomato, he turns into a normal (not zombie) soldier for 7 turns.
-* an ice shield, he becomes unable to pick up new items for 3 turns, and
+* a tomato (O), he turns into a normal (not zombie) soldier for 7 turns.
+* an ice shield (C), he becomes unable to pick up new items for 3 turns, and
   instead destroys them instantly when touching them.
-* a toilet, he doesn't move for 10 turns.
+* a toilet (L), he doesn't move for 10 turns.
 
 If a professor is a normal soldier, he will be able to sense your presence and
 move towards you. Such a soldier is not very smart, so a wall is enough to stop
@@ -246,6 +247,10 @@ A small map might look like this:
 
     ! down
     x up turn-down
+
+If you save this map as, say "mymap", you can play it by running
+
+    indirectassassin mymap
 
 Here # = wall, ! = The Agent, O = a toilet, and x = a professor. The lines
 after the double-line specifies data about The Agent and the professors on the
