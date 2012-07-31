@@ -26,7 +26,7 @@ module IndirectAssassin.Misc where
 import Prelude hiding (Right, Left)
 
 (.<) :: Integral n => n -> (a -> a) -> a -> a
-(.<) 0 f v = v
+(.<) 0 _ v = v
 (.<) n f v = (.<) (n - 1) f $ f v
 infixr 9 .<
 
@@ -37,17 +37,17 @@ anytrue :: [a -> Bool] -> a -> Bool
 anytrue fs x = (\f -> f x) `any` fs
 
 outM :: Monad m => [m a] -> m [a]
-outM xs = out xs []
-  where out [] ys = return ys
-        out (x : xs) ys = x >>= \y -> out xs (y : ys)
+outM = out []
+  where out ys [] = return ys
+        out ys (x : xs) = x >>= \y -> out (y : ys) xs
 
 toUnit :: Monad m => [m a] -> m ()
 toUnit xs = outM xs >> return ()
   
 posrem :: Int -> Int -> Int
-posrem n r = pos $ n `rem` r
-  where pos n | n < 0 = r + n
-              | otherwise = n
+posrem n r = extra $ n `rem` r + n
+  where extra t | t < 0 = r
+                | otherwise = 0
 
 instance (Num t, Num t1) => Num (t, t1) where
   (x, y) + (x', y') = (x + x', y + y')

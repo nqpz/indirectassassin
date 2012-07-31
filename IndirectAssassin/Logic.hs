@@ -86,12 +86,12 @@ itemWithLast :: Item -> (Item, Int)
 itemWithLast = (\(a, b) x -> (a x, b x)) (id, profItemLast)
 
 profLightLength :: Direction -> Position -> [Item] -> Int
-profLightLength dir (x, y) items | Buckets `elem` items = 5
-                                 | otherwise = 3
+profLightLength _ _ items | Buckets `elem` items = 5
+                          | otherwise = 3
 
 profSprite :: Graphics -> Direction -> Position -> [Item]
               -> (Word32 -> SurfPart, SurfPart)
-profSprite g dir (x, y) items = getSprite g dir
+profSprite g dir _ items = getSprite g dir
   where getSprite | YellowBat `elem` items = getSoldierZombie
                   | Tomato `elem` items = getSoldierNormal
                   | otherwise = getProfessor
@@ -118,7 +118,7 @@ profNextDirPos game dir pos@(x, y) items
                 (x', y') = fst $ head $ filter (check . snd) $ Map.toList game
 
 profIsDead :: Game -> Direction -> Position -> [Item] -> Bool
-profIsDead game dir pos@(x, y) items
+profIsDead game dir pos items
   = (GreenBee `elem` items) || ((pos `elem` zombieLight)
                                 && (not (ownLight `isInfixOf` zombieLight)))
   where ownLight = lightExtend (pos, Professor dir $ map itemWithLast items)
@@ -135,6 +135,7 @@ lightFrom _   _   (-1) = []
 lightFrom dir pos n    = pos : lightFrom dir npos (n - 1)
   where (_, npos) = nextDirPos dir Up pos
 
+getFlashlightTiles :: Game -> Map.Map Position Lighting
 getFlashlightTiles game = foldl' buildLight Map.empty 
                           $ filter (isProfessor . snd) $ Map.toList game
   where buildLight lightMap (pos, Professor dir items)
@@ -142,6 +143,7 @@ getFlashlightTiles game = foldl' buildLight Map.empty
             $ profLightLength dir pos $ map fst items
         build lightMap pos = Map.insert pos Flashlight lightMap
 
+getNightVisionTiles :: Game -> Map.Map Position Lighting
 getNightVisionTiles game = buildLight $ getGameAgent game
   where buildLight (pos, Agent dir _)
           = foldl' build Map.empty $ lightFrom dir pos 3
@@ -203,8 +205,8 @@ runAI game posChanges = whenNotOver game runAI'
         buildNew state _ = state
         whenNotOver game f = maybe f (\b -> (GameWon b, game, posChanges))
                              $ gameOverWon game
-        adjust (item, 1) = Nothing
-        adjust orig@(item, -1) = Just orig
+        adjust (_, 1) = Nothing
+        adjust orig@(_, -1) = Just orig
         adjust (item, n) = Just (item, n - 1)
 
 

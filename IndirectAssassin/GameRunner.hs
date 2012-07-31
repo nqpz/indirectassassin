@@ -24,11 +24,9 @@ module IndirectAssassin.GameRunner where
 import Prelude hiding (Right, Left)
 import Data.Maybe
 import Data.Word
-import Data.Char
-import Data.List (foldl', sortBy)
+import Data.List (sortBy)
 import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
-import qualified Graphics.UI.SDL.Image as SDLi
 import qualified Graphics.UI.SDL.TTF as SDLttf
 -- import qualified Graphics.UI.SDL.Mixer as SDLmix
 import Graphics.UI.SDL.Keysym
@@ -39,7 +37,6 @@ import Data.IORef
 import IndirectAssassin.Misc
 import IndirectAssassin.BaseTypes
 import IndirectAssassin.Graphics
-import IndirectAssassin.Map
 import IndirectAssassin.Logic
 
 
@@ -178,7 +175,7 @@ gamesLoop rootSurf graphics args@(gameListLists,
     nextMap  = nextElement gameListLists (currentGameList, currentGame)
 
 eventAction :: SDL.Event -> Maybe UserAction
-eventAction (SDL.KeyDown (Keysym k mods c))
+eventAction (SDL.KeyDown (Keysym k mods _))
   | [KeyModCtrl, KeyModLeftCtrl, KeyModRightCtrl] `anyelem` mods = case k of
       SDLK_UP    -> Just PrevGame
       SDLK_DOWN  -> Just NextGame

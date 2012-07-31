@@ -22,19 +22,15 @@ module IndirectAssassin.Graphics where
 
 -- Global
 import Prelude hiding (Right, Left)
-import Data.Maybe
 import Data.Word
-import Control.Monad
-import qualified Data.Map as Map
 import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import qualified Graphics.UI.SDL.TTF as SDLttf
-import qualified Graphics.UI.SDL.Mixer as SDLmix
+-- import qualified Graphics.UI.SDL.Mixer as SDLmix
 import Paths_IndirectAssassin (getDataFileName)
 -- Local
 import IndirectAssassin.Misc
 import IndirectAssassin.BaseTypes
-import IndirectAssassin.Map
 
 
 -- hardcoded because I'm lazy (like the language, but different)
@@ -111,6 +107,7 @@ itemToImage g i = (\f -> f g) $ case i of
   Tomato    -> getTomato
   IceShield -> getIceShield
   Toilet    -> getToilet
+  _         -> error "item has no associated image"
         
 closeGraphics :: Graphics -> IO ()
 closeGraphics graphics = do
@@ -169,7 +166,7 @@ prepAni xTiles yTiles frameDur path = do
 
 
 walkcycle :: AnimationInfo -> Direction -> Word32 -> SurfPart
-walkcycle (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) direc t
+walkcycle (surf, tileW, tileH, oneDir, frameDur, xTiles, _) direc t
   = (surf, rect)
   where nOffset = oneDir * fromEnum direc
         n = 1 + nOffset + floor (fromIntegral t

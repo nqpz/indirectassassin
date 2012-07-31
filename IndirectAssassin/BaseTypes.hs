@@ -23,14 +23,11 @@ module IndirectAssassin.BaseTypes where
 -- Global
 import Prelude hiding (Right, Left)
 import qualified Data.Map as Map
-import qualified Graphics.UI.SDL as SDL
-import qualified Graphics.UI.SDL.Image as SDLi
 import Data.Char
 import Data.Word
 import qualified Graphics.UI.SDL as SDL
-import qualified Graphics.UI.SDL.Image as SDLi
 import qualified Graphics.UI.SDL.TTF as SDLttf
-import qualified Graphics.UI.SDL.Mixer as SDLmix
+-- import qualified Graphics.UI.SDL.Mixer as SDLmix
 -- Local
 import IndirectAssassin.Misc
 
@@ -39,6 +36,7 @@ data Direction = Up | Left | Down | Right
 
 stringToDirection :: String -> Direction
 stringToDirection (c : cs) = read $ toUpper c : cs
+stringToDirection x = read x
 
 instance Enum Direction where
   succ Up    = Left
@@ -68,14 +66,17 @@ type CenterList a = ([a], [a])
 nextElement :: CenterList a -> a -> (CenterList a, a)
 nextElement (before, (next : after)) current 
   = ((current : before, after), next)
+nextElement _ _ = error "wrong arguments"
 
 prevElement :: CenterList a -> a -> (CenterList a, a)
 prevElement ((prev : before), after) current 
   = ((before, current : after), prev)
+prevElement _ _ = error "wrong arguments"    
 
 createInfCenterList :: [a] -> (CenterList a, a)
 createInfCenterList xs'@(x : xs) 
   = ((cycle $ reverse xs', cycle (xs ++ [x])), x)
+createInfCenterList _ = error "empty list not applicable"
 
 
 data Item = Barrels   -- A
@@ -88,7 +89,7 @@ data Item = Barrels   -- A
           | Toilet    -- L
           | TurnAtWall { getTurnDirection :: Direction
                        }
-          deriving (Show, Eq, Ord)
+          deriving (Show, Read, Eq, Ord)
 
 isTurnDirection :: Item -> Bool
 isTurnDirection (TurnAtWall _) = True
@@ -111,7 +112,7 @@ type Game = Map.Map Position Cell
 data AgentAction = Go Direction | UseItem Item | PassTurn
                  deriving (Show, Eq)
 
-data UserAction = NoAction | PrevGame | NextGame | PrevMap | NextMap 
+data UserAction = PrevGame | NextGame | PrevMap | NextMap 
                 | ToggleCheat | Accept | AgentAction AgentAction 
                 | NewDirection Direction | ExitGame
                 deriving (Show, Eq)
@@ -130,16 +131,19 @@ data GameExtra = GameExtra { getGame :: Game
 data Lighting = Darkness | Flashlight | NightVision
               deriving (Show, Eq)
 
-(charToItem, itemToChar) = (lookupOn alist, 
-                            lookupOn $ map (\(a, b) -> (b, a)) alist)
-  where alist = [('A', Barrels), ('U', Buckets), ('R', GreenBee),
-                 ('I', Diamond), ('O', Tomato), ('C', IceShield),
-                 ('L', Toilet), ('E', YellowBat)]
+charToItem :: Char -> Maybe Item
+itemToChar :: Item -> Maybe Char
+(charToItem, itemToChar) = (lookupOn conv,
+                            lookupOn $ map (\(a, b) -> (b, a)) conv)
+  where conv = [('A', Barrels), ('U', Buckets), ('R', GreenBee),
+                ('I', Diamond), ('O', Tomato), ('C', IceShield),
+                ('L', Toilet), ('E', YellowBat)]
         lookupOn alist x = Map.lookup x $ Map.fromList alist
 
 stringToItem :: String -> Item
 stringToItem ('t':'u':'r':'n':'-':cs) = TurnAtWall $ stringToDirection cs
 stringToItem (c : cs) | null cs = maybe (error "no parse") id $ charToItem c
+stringToItem s = read s
 
 isProfessor :: Cell -> Bool
 isProfessor (Professor _ _) = True
@@ -161,6 +165,7 @@ isEmpty :: Cell -> Bool
 isEmpty Empty = True
 isEmpty _     = False
 
+cellAt :: Game -> Position -> Cell
 cellAt game p = maybe Empty id $ Map.lookup p game
 
 calcOffset :: Direction -> (Int, Int)

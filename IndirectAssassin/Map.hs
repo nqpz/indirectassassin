@@ -26,12 +26,10 @@ module IndirectAssassin.Map where
 import Prelude hiding (Right, Left)
 import Data.List (foldl')
 import Data.List.Utils (split)
-import Data.Maybe
 import qualified Data.Map as Map
 -- Local
 import IndirectAssassin.BaseTypes
 import IndirectAssassin.Logic
-import IndirectAssassin.Misc
 
 parseGameMap :: String -> (Game, String)
 parseGameMap cs = (getMap top'' $ getMeta bottom, top')
