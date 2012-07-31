@@ -85,18 +85,6 @@ Once this is done, run (from the root directory of the extracted tarball):
 and the game should be installed. You can ignore the many warnings by GHC.
 
 
-### With Cabal
-
-Note that, if you have installed the Haskell Platform prior to downloading this
-program, you can just run
-
-    cabal install indirectassassin
-    
-to both download and install the newest version of this game and its SDL
-dependencies. Note that you'll probably still want to keep a copy of this
-README as it's essentially the documentation of the game.
-
-
 How to play
 -----------
 
