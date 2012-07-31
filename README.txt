@@ -50,8 +50,8 @@ Online
 
 Indirect Assassin has a web page at
 http://metanohi.name/projects/indirectassassin/ which always contains the
-newest version of the program. Indirect Assassin is also on Haskell's Hackage;
-see http://
+newest version of the program. At some point in the future, Indirect Assassin
+will also be on Haskell's Hackage.
 
 
 Installation
