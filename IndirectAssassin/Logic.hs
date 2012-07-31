@@ -180,6 +180,7 @@ runAI game posChanges = whenNotOver game $ runAI' game
                                  else fill [item]
                     Wall -> withNewDir
                     Professor _ _ -> nothingNew
+                    Agent _ _ -> nothingNew -- this line shouldn't be necessary
                   where fill newItems = (Map.insert nextPos 
                                          (Professor nextDir itemsOldNew)
                                          $ Map.delete p game,
