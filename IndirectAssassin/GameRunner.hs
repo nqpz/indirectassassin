@@ -122,7 +122,7 @@ gamesLoop :: SDL.Surface
 gamesLoop rootSurf graphics args@(gameListLists, 
                                  (currentGameList, currentGame)) = do
   event <- SDL.pollEvent
-  case event of 
+  case event of
     SDL.NoEvent -> rnd currentGame >> loop args
     event -> case eventAction event of
       Nothing -> rnd currentGame >> loop args
