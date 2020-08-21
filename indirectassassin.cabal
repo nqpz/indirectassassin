@@ -1,0 +1,86 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.2.
+--
+-- see: https://github.com/sol/hpack
+
+name:           indirectassassin
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/nqpz/indirectassassin#readme>
+homepage:       https://github.com/nqpz/indirectassassin#readme
+bug-reports:    https://github.com/nqpz/indirectassassin/issues
+author:         Niels G. W. Serup
+maintainer:     ngws@metanohi.name
+copyright:      2012 Niels G. W. Serup
+license:        GPL-3
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+    AUTHORS.md
+    BUGS.md
+    COPYING.md
+data-files:
+    data/embosst1.ttf
+    data/floor.png
+    data/wall.png
+    data/character/agent.png
+    data/character/professor.png
+    data/character/soldier_normal.png
+    data/character/soldier_zombie.png
+    data/item/barrels.png
+    data/item/bat_yellow.png
+    data/item/bee_green.png
+    data/item/buckets.png
+    data/item/diamond.png
+    data/item/ice_shield.png
+    data/item/toilet.png
+    data/item/tomato.png
+    data/maps/map0.map
+    data/maps/map1.map
+    data/maps/map2.map
+    data/maps/map3.map
+    data/maps/map4.map
+
+source-repository head
+  type: git
+  location: https://github.com/nqpz/indirectassassin
+
+library
+  exposed-modules:
+      IndirectAssassin.BaseTypes
+      IndirectAssassin.GameRunner
+      IndirectAssassin.Graphics
+      IndirectAssassin.Logic
+      IndirectAssassin.Map
+      IndirectAssassin.Misc
+  other-modules:
+      Paths_indirectassassin
+  hs-source-dirs:
+      src
+  build-depends:
+      MissingH
+    , SDL
+    , SDL-image
+    , SDL-mixer
+    , SDL-ttf
+    , base >=4.7 && <5
+    , containers
+  default-language: Haskell2010
+
+executable indirectassassin
+  main-is: Main.hs
+  other-modules:
+      Paths_indirectassassin
+  hs-source-dirs:
+      app
+  build-depends:
+      MissingH
+    , SDL
+    , SDL-image
+    , SDL-mixer
+    , SDL-ttf
+    , base >=4.7 && <5
+    , containers
+    , indirectassassin
+  default-language: Haskell2010

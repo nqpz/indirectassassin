@@ -2,7 +2,7 @@ module Main (main) where
 
 -- Global
 import System.Environment
-import Paths_IndirectAssassin (getDataFileName)
+import Paths_indirectassassin (getDataFileName)
 -- Local
 import IndirectAssassin.Misc
 import IndirectAssassin.Map (loadGameMap)

@@ -43,7 +43,7 @@ outM = out []
 
 toUnit :: Monad m => [m a] -> m ()
 toUnit xs = outM xs >> return ()
-  
+
 posrem :: Int -> Int -> Int
 posrem n r = extra $ n `rem` r + n
   where extra t | t < 0 = r

@@ -49,7 +49,7 @@ instance Enum Direction where
   toEnum 2 = Down
   toEnum 3 = Right
   toEnum n = toEnum $ n `posrem` 4
-  
+
   fromEnum Up    = 0
   fromEnum Left  = 1
   fromEnum Down  = 2
@@ -64,17 +64,17 @@ type SurfPart = (SDL.Surface, SDL.Rect)
 type CenterList a = ([a], [a])
 
 nextElement :: CenterList a -> a -> (CenterList a, a)
-nextElement (before, (next : after)) current 
+nextElement (before, (next : after)) current
   = ((current : before, after), next)
 nextElement _ _ = error "wrong arguments"
 
 prevElement :: CenterList a -> a -> (CenterList a, a)
-prevElement ((prev : before), after) current 
+prevElement ((prev : before), after) current
   = ((before, current : after), prev)
-prevElement _ _ = error "wrong arguments"    
+prevElement _ _ = error "wrong arguments"
 
 createInfCenterList :: [a] -> (CenterList a, a)
-createInfCenterList xs'@(x : xs) 
+createInfCenterList xs'@(x : xs)
   = ((cycle $ reverse xs', cycle (xs ++ [x])), x)
 createInfCenterList _ = error "empty list not applicable"
 
@@ -97,10 +97,10 @@ isTurnDirection _ = False
 
 data Cell = Wall
           | Empty
-          | Professor { getDirection :: Direction 
+          | Professor { getDirection :: Direction
                       , getItems :: [(Item, Int)]
                       }
-          | Agent  { getDirection :: Direction 
+          | Agent  { getDirection :: Direction
                    , getAgentItems :: [Item]
                    }
           | Item { getItem :: Item
@@ -112,8 +112,8 @@ type Game = Map.Map Position Cell
 data AgentAction = Go Direction | UseItem Item | PassTurn
                  deriving (Show, Eq)
 
-data UserAction = PrevGame | NextGame | PrevMap | NextMap 
-                | ToggleCheat | Accept | AgentAction AgentAction 
+data UserAction = PrevGame | NextGame | PrevMap | NextMap
+                | ToggleCheat | Accept | AgentAction AgentAction
                 | NewDirection Direction | ExitGame
                 deriving (Show, Eq)
 

@@ -27,7 +27,7 @@ import qualified Graphics.UI.SDL as SDL
 import qualified Graphics.UI.SDL.Image as SDLi
 import qualified Graphics.UI.SDL.TTF as SDLttf
 -- import qualified Graphics.UI.SDL.Mixer as SDLmix
-import Paths_IndirectAssassin (getDataFileName)
+import Paths_indirectassassin (getDataFileName)
 -- Local
 import IndirectAssassin.Misc
 import IndirectAssassin.BaseTypes
@@ -53,17 +53,17 @@ getGraphics = do
   drawFloor floorSurf fullFloor
   SDL.freeSurface floorSurf
   wallSurf <- prepStill "data/wall.png"
-  
+
   fontPath <- getDataFileName "data/embosst1.ttf"
   font <- SDLttf.openFont fontPath 30
-  
+
   agentCycle <- prepWalkcycle 9 4 50 "data/character/agent.png"
   professorCycle <- prepWalkcycle 9 4 50 "data/character/professor.png"
-  soldierNormalCycle <- prepWalkcycle 9 4 50 
+  soldierNormalCycle <- prepWalkcycle 9 4 50
                         "data/character/soldier_normal.png"
-  soldierZombieCycle <- prepWalkcycle 9 4 50 
+  soldierZombieCycle <- prepWalkcycle 9 4 50
                         "data/character/soldier_zombie.png"
-  
+
   barrels <- prepStill "data/item/barrels.png"
   buckets <- prepStill "data/item/buckets.png"
   bat <- prepAni 3 4 100 "data/item/bat_yellow.png"
@@ -72,17 +72,17 @@ getGraphics = do
   tomato <- prepAni 16 2 40 "data/item/tomato.png"
   iceShield <- prepAni 4 4 100 "data/item/ice_shield.png"
   toilet <- prepStill "data/item/toilet.png"
-  
+
   darknessSurf <- createSurf 64 64
   flashlightSurf <- createSurf 64 64
   nightVisionSurf <- createSurf 64 64
   fillSurf 0x000000ff darknessSurf
   fillSurf 0xfff22455 flashlightSurf
   fillSurf 0x0000ff55 nightVisionSurf
-  
+
   -- bgMusPath <- getDataFileName "data/sound/background_music.ogg"
   -- backgroundMusic <- SDLmix.loadMUS bgMusPath
-  
+
   return $ Graphics fullFloor wallSurf font
     (dirExpand (walkcycle agentCycle, standStill agentCycle))
     (dirExpand (walkcycle professorCycle, standStill professorCycle))
@@ -96,7 +96,7 @@ getGraphics = do
                      NightVision -> nightVisionSurf)
     -- backgroundMusic
   where dirExpand (ani, still) direc = (ani direc, still direc)
-        
+
 itemToImage :: Graphics -> Item -> Word32 -> SurfPart
 itemToImage g i = (\f -> f g) $ case i of
   Barrels   -> getBarrels
@@ -108,7 +108,7 @@ itemToImage g i = (\f -> f g) $ case i of
   IceShield -> getIceShield
   Toilet    -> getToilet
   _         -> error "item has no associated image"
-        
+
 closeGraphics :: Graphics -> IO ()
 closeGraphics graphics = do
   SDL.freeSurface $ getFloor graphics
@@ -130,7 +130,7 @@ closeGraphics graphics = do
         freeAni f   = SDL.freeSurface $ fst $ f graphics 1
 
 drawFloor :: SDL.Surface -> SDL.Surface -> IO ()
-drawFloor floorSurf destSurf 
+drawFloor floorSurf destSurf
   = toUnit [ blitFloor (x, y) |
              x <- [0..ceiling $ fromIntegral width / 96 + fromIntegral 2],
              y <- [0..ceiling $ fromIntegral height / 32] ]
@@ -148,7 +148,7 @@ stillAni surf _ = (surf, SDL.Rect 0 0 (SDL.surfaceGetWidth surf)
 
 type AnimationInfo = (SDL.Surface, Int, Int, Int, Int, Int, Int)
 animation :: AnimationInfo -> Word32 -> SurfPart
-animation (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) t 
+animation (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles) t
   = (surf, rect)
   where n = floor (fromIntegral t / fromIntegral frameDur) `rem` oneDir
         (x, y) = (n `rem` xTiles, floor $ fromIntegral n / fromIntegral xTiles)
@@ -159,7 +159,7 @@ prepAni xTiles yTiles frameDur path = do
   path' <- getDataFileName path
   surf <- SDLi.load path'
   let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
-  let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, 
+  let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles,
                         floor $ fromIntegral h / fromIntegral yTiles)
   let oneDir = floor $ fromIntegral xTiles * fromIntegral yTiles
   return (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles)
@@ -171,7 +171,7 @@ walkcycle (surf, tileW, tileH, oneDir, frameDur, xTiles, _) direc t
   where nOffset = oneDir * fromEnum direc
         n = 1 + nOffset + floor (fromIntegral t
                                  / fromIntegral frameDur) `rem` (oneDir - 1)
-        (x, y) = (n `rem` (xTiles - 1), 
+        (x, y) = (n `rem` (xTiles - 1),
                   floor $ fromIntegral n / fromIntegral xTiles)
         rect = SDL.Rect (x * tileW) (y * tileH) tileW tileH
 
@@ -180,7 +180,7 @@ prepWalkcycle xTiles yTiles frameDur path = do
           path' <- getDataFileName path
           surf <- SDLi.load path'
           let (w, h) = (SDL.surfaceGetWidth surf, SDL.surfaceGetHeight surf)
-          let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles, 
+          let (tileW, tileH) = (floor $ fromIntegral w / fromIntegral xTiles,
                                 floor $ fromIntegral h / fromIntegral yTiles)
           let oneDir = floor $ fromIntegral xTiles * fromIntegral yTiles / 4
           return (surf, tileW, tileH, oneDir, frameDur, xTiles, yTiles)

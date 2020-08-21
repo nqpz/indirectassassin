@@ -123,7 +123,7 @@ profIsDead game dir pos items
                                 && (not (ownLight `isInfixOf` zombieLight)))
   where ownLight = lightExtend (pos, Professor dir $ map itemWithLast items)
         zombieLight = concatMap lightExtend zombies
-        zombies = 
+        zombies =
           filter (\(_, c) ->
                    isProfessor c && Tomato `elem` (map fst $ getItems c))
                   $ Map.toList game
@@ -136,7 +136,7 @@ lightFrom dir pos n    = pos : lightFrom dir npos (n - 1)
   where (_, npos) = nextDirPos dir Up pos
 
 getFlashlightTiles :: Game -> Map.Map Position Lighting
-getFlashlightTiles game = foldl' buildLight Map.empty 
+getFlashlightTiles game = foldl' buildLight Map.empty
                           $ filter (isProfessor . snd) $ Map.toList game
   where buildLight lightMap (pos, Professor dir items)
           = foldl' build lightMap $ lightFrom dir pos
@@ -150,7 +150,7 @@ getNightVisionTiles game = buildLight $ getGameAgent game
         build lightMap pos = Map.insert pos NightVision lightMap
 
 unionApp :: (Ord k, Ord k1) => (Map.Map k a -> Map.Map k1 a1)
-            -> (Map.Map k a -> Map.Map k1 a1) 
+            -> (Map.Map k a -> Map.Map k1 a1)
             -> Map.Map k a -> Map.Map k1 a1
 unionApp f g map = Map.union (f map) (g map)
 
@@ -164,7 +164,7 @@ gameOverWon game = maybe (Just True) (const elseExpr)
                                (not $ profIsDead game (getDirection c)
                                 pos (map fst $ getItems c))
         gameLost :: Bool
-        gameLost = maybe False (== Flashlight) $ Map.lookup 
+        gameLost = maybe False (== Flashlight) $ Map.lookup
                    (fst $ getGameAgent game) (getLighting game)
         elseExpr | gameLost = Just False
                  | otherwise = Nothing
@@ -183,24 +183,24 @@ runAI game posChanges = whenNotOver game runAI'
           where isDead = profIsDead game dir p items'
                 items' = map fst items
                 ndp = profNextDirPos game dir p items'
-                actOnNext (Just (nextDir, nextPos)) = 
+                actOnNext (Just (nextDir, nextPos)) =
                   case cellAt game nextPos of
                     Empty -> fill []
                     Item item -> act
                       where act | IceShield `elem` items' = fill []
                                 | otherwise = fill [item]
                     _ -> withNewDir
-                  where fill newItems = (Map.insert nextPos 
+                  where fill newItems = (Map.insert nextPos
                                          (Professor nextDir itemsOldNew)
                                          $ Map.delete p game,
                                          Map.insert nextPos p posChanges)
                           where itemsOldNew = map itemWithLast newItems
                                               ++ (catMaybes $ map adjust items)
                         withNewDir = (Map.insert p newProf game, posChanges)
-                        newProf = Professor nextDir (catMaybes 
+                        newProf = Professor nextDir (catMaybes
                                                      $ map adjust items)
-                nothingNew = (Map.insert p 
-                              (Professor dir (catMaybes $ map adjust items)) 
+                nothingNew = (Map.insert p
+                              (Professor dir (catMaybes $ map adjust items))
                               game, posChanges)
         buildNew state _ = state
         whenNotOver game f = maybe f (\b -> (GameWon b, game, posChanges))
@@ -208,5 +208,3 @@ runAI game posChanges = whenNotOver game runAI'
         adjust (_, 1) = Nothing
         adjust orig@(_, -1) = Just orig
         adjust (item, n) = Just (item, n - 1)
-
-

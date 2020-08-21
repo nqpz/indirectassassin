@@ -1,0 +1,41 @@
+name:                indirectassassin
+version:             0.1.0.0
+github:              "nqpz/indirectassassin"
+license:             GPL-3
+author:              "Niels G. W. Serup"
+maintainer:          "ngws@metanohi.name"
+copyright:           "2012 Niels G. W. Serup"
+
+data-files:
+  - data/*
+  - data/character/*
+  - data/item/*
+  - data/maps/*
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+- AUTHORS.md
+- BUGS.md
+- COPYING.md
+
+description:         Please see the README on GitHub at <https://github.com/nqpz/indirectassassin#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- MissingH
+- SDL
+- SDL-ttf
+- SDL-image
+- SDL-mixer
+
+library:
+  source-dirs: src
+
+executables:
+  indirectassassin:
+    main:                Main.hs
+    source-dirs:         app
+    dependencies:
+    - indirectassassin

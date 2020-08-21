@@ -40,16 +40,16 @@ parseGameMap cs = (getMap top'' $ getMeta bottom, top')
             makeMeta metaMap ([identifier] : direction : items)
               = Map.insert identifier (t (stringToDirection direction)
                                        $ map stringToItem items) metaMap
-                where t = case identifier of 
+                where t = case identifier of
                         '!' -> Agent
                         _   -> \dir items -> Professor dir
                                              $ map itemWithLast items
-        
+
         getMap top meta = snd $ foldl' build ((0, 0), Map.empty) top
           where build ((_, y), game) '\n' = ((0, y + 1), game)
                 build (p@(x, y), game) c  = ((x + 1, y),
                                              Map.insert p (getCell c) game)
-                
+
                 getCell '#' = Wall
                 getCell ' ' = Empty
                 getCell c   = maybe (maybe (error ("no such item: " ++ [c]))
